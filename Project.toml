@@ -3,7 +3,11 @@ uuid = "ddd1f41d-9621-41e2-91a4-6b87cc8989f3"
 authors = ["Ash Baldwin <Ash.Baldwin@warwick.ac.uk> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+NQCModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
+
 [compat]
+NQCModels = "0.9.1"
 julia = "1.6"
 
 [extras]
