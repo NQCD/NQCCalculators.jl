@@ -16,6 +16,17 @@ and methods needed to evaluate the quantities for each bead.
 """
 module QCEngine
 
+using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
+using StaticArrays: SMatrix, SVector
+using RingPolymerArrays: get_centroid!
+
+using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, Subsystem, CompositeModel
+using NQCModels.AdiabaticModels: AdiabaticModel
+using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
+using NQCModels.FrictionModels: AdiabaticFrictionModel
+
+using NQCDynamics: ndofs
+
 include("Caches.jl")
 include("Calculators.jl")
 

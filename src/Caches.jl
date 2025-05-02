@@ -7,24 +7,12 @@ quantities obtained from `NQCModels` in a format which can be easily intregated 
 """
 module Caches
 
-using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
-using StaticArrays: SMatrix, SVector
-using RingPolymerArrays: get_centroid!
-
-using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, Subsystem, CompositeModel
-using NQCModels.AdiabaticModels: AdiabaticModel
-using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
-using NQCModels.FrictionModels: AdiabaticFrictionModel
-
-using NQCDynamics: ndofs
-
-include("friction.jl")
 include("large_diabatic.jl")
 include("ring_polymer_large_diabatic.jl")
 
-#Definitions of Abstract Cache Structs
+#Definitions of Abstract Cache structs
 """
-    Abstract_Cache{M<:Model}
+    type: Abstract_Cache{M<:Model}
 
 Top-level type for all caches.
 
@@ -34,7 +22,7 @@ obtained from the model.
 abstract type Abstract_Cache{T, M<:Model} end #type was called AbstractCalculator
 
 """
-    Abstract_ClassicalModel_Cache{T, M<:Union{AdiabaticModel, CompositeModel}} <: Abstract_Cache{T, M}
+    type: Abstract_ClassicalModel_Cache{T, M<:Union{AdiabaticModel, CompositeModel}} <: Abstract_Cache{T, M}
 
 Type for storing quantities obtained from models defined by an analytic classical potentials. Examples 
 include the harmonic potential (AdiabticModels.Harmonic), the morse potential (AdiabticModels.Morse) and
@@ -43,46 +31,72 @@ the Darling-Holloway elbow model (AdiabticModels.DarlingHollowayElbow)
 abstract type Abstract_ClassicalModel_Cache{T, M<:Union{AdiabaticModel, CompositeModel}} <: Abstract_Cache{T, M} end #type was called AbstractAdiabaticCalculator
 
 """
-    Abstract_QuantumModel_Cache{T, M<:Union{DiabaticFrictionModel, DiabaticModel}} <: Abstract_Cache{T, M}
-
-Type for storing quantities obtained from models defined in terms of large quantum Hamiltonians or quantum Hamiltonians 
-for many independent particles. For these models, the Hamiltonians are large enouch that StaticArrays become inefficient.
-The key example is the Anderson-Holstein model (DiabaticModels.AndersonHolstein).
-"""
-abstract type Abstract_LargeQuantumModel_Cache{T, M<:Union{DiabaticFrictionModel, DiabaticModel}} <: Abstract_Cache{T, M} end #type was called AbstractDiabaticCalculator
-
-"""
-    Abstract_StaticArray_QuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T, M}
-
-Type for storing quantities obtained from models defined in terms of quantum Hamiltonians for single particles. 
-For these systems, the Hamiltonains are defined in terms of small matrices so StaticArrays are used for efficiency. 
-Examples include the double well potential model (DiabaticModels.DoubleWell), the spin-boson model (DiabaticModels.SpinBoson)
-and the Erpenbeck-Thoss model (DiabaticModel.ErpenbeckThoss)
-"""
-abstract type Abstract_QuantumModel_Cache{T, M} <: Abstract_LargeQuantumModel_Cache{T, M} end #type was called AbstractStaticDiabaticCalculator
-
-"""
-    Abstract_FrictionTensor_Cache{T, M<:Union{AdiabaticFrictionModel, CompositeModel}} <: Abstract_Cache{T, M}
+    type: Abstract_Friction_Cache{T, M<:Union{AdiabaticFrictionModel, CompositeModel}} <: Abstract_Cache{T, M}
 
 Type for storing quantities obtained from models defined in terms of a friction tensor. Examples include the 
 constant friction (FrictionModels.ConstantFriction), random friction (FrictionModels.RandomFriction) and 
 composite friction models (FrictionModels.CompositeFrictionModel) - the latter of which exists as a framework for combining a 
 friction model with an classical potential energy surface. 
 """
-abstract type Abstract_FrictionTensor_Cache{T, M<:Union{AdiabaticFrictionModel, CompositeModel}} <: Abstract_Cache{T, M} end #type was called AbstractFrictionCalculator
+abstract type Abstract_Friction_Cache{T, M<:Union{AdiabaticFrictionModel, CompositeModel}} <: Abstract_Cache{T, M} end #type was called AbstractFrictionCalculator
 
 """
-   Abstract_CorrelatedQuantumModel_Cache{T, M<:{CorrelatedQuantumModel}} <: Abstract_Cache{T, M}
+    type: Abstract_ExactQuantumModel_Cache{T, M} <: Abstract_Cache{T, M}
+
+Abstract supertype for all quantum models that can be solved with exact diagonalisation.
+"""
+abstract type Abstract_ExactQuantumModel_Cache{T, M<:Union{DiabaticFrictionModel, DiabaticModel}} <: Abstract_Cache{T, M} end #type was called AbstractDiabaticCalculator
+
+"""
+    type: Abstract_SmallQuantumModel_Cache{T, M} <: Abstract_ExactQuantumModel_Cache{T, M}
+
+Type for storing quantities obtained from models defined in terms of quantum Hamiltonians for single particles. 
+For these systems, the Hamiltonains are defined in terms of small matrices so StaticArrays are used for efficiency. 
+Examples include the double well potential model (DiabaticModels.DoubleWell), the spin-boson model (DiabaticModels.SpinBoson)
+and the Erpenbeck-Thoss model (DiabaticModel.ErpenbeckThoss)
+"""
+abstract type Abstract_SmallQuantumModel_Cache{T, M} <: Abstract_ExactQuantumModel_Cache{T, M} end #type was called AbstractStaticDiabaticCalculator
+
+"""
+    type: Abstract_LargeQuantumModel_Cache{T, M<:Union{DiabaticFrictionModel, DiabaticModel}} <: Abstract_ExactQuantumModel_Cache{T, M}
+
+Type for storing quantities obtained from models defined in terms of large single particle quantum Hamiltonians or quantum Hamiltonians 
+for many independent particles. For these models, the Hamiltonians are large enough that StaticArrays become inefficient.
+The key example is the Anderson-Holstein model (DiabaticModels.AndersonHolstein).
+"""
+abstract type Abstract_LargeQuantumModel_Cache{T, M} <: Abstract_ExactQuantumModel_Cache{T, M} end #type was called AbstractLargeDiabaticCalculator
+
+"""
+   type: Abstract_CorrelatedQuantumModel_Cache{T, M<:{CorrelatedQuantumModel}} <: Abstract_Cache{T, M}
  
 Type for storing quantities obtained from models defined in terms of quantum Hamiltonians that parameterise a collection of 
-interacting electrons and therefore cannot be efficiently solved with exact diagonalisation.
+interacting electrons and therefore cannot be solved with exact diagonalisation.
 """
-abstract type Abstract_CorrelatedQuantumModel_Cache{T, M<:{CorrelatedQuantumModel}} <: Abstract_Cache{T, M} end #type didn't formerly exist
+abstract type Abstract_CorrelatedQuantumModel_Cache{T, M} <: Abstract_Cache{T, M} end #type didn't formerly exist
+
+"""
+    mutable struct: DependentField{V,R}
+        value::V
+        position::R
+
+A general use mutable struct used to store cached values that must be updated during a dynamics simulation.
+"""
+mutable struct DependentField{V,R}
+    value::V
+    position::R
+end
+
+"""
+    function: needsupdate(field::DependentField, r)
+
+Function to test if the value stored in the DependentField mutable struct needs to be updated at the given time-step in a dynamics simulation
+"""
+needsupdate(field::DependentField, r) = field.position != r
+
 
 #Definitions for the concrete Subtypes of the above Cache Types
-
 """
-    ClassicalModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
+    struct: ClassicalModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
         model::{AdiabaticModel, CompositeModel}
         potential::DependentField{T,Matrix{T}}
         derivative::DependentField{Matrix{T},Matrix{T}}
@@ -98,7 +112,7 @@ struct ClassicalModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
 end
 
 """
-    ClassicalModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+    function: ClassicalModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice
 and the number of atoms in the simulation
@@ -123,7 +137,7 @@ end
 
 
 """
-    RingPolymer_ClassicalModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
+    struct: RingPolymer_ClassicalModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
         model::M
         potential::DependentField{Vector{T},Array{T,3}}
         derivative::DependentField{Array{T,3},Array{T,3}}
@@ -139,7 +153,7 @@ struct RingPolymer_ClassicalModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,
 end
 
 """
-    RingPolymer_ClassicalModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+    function: RingPolymer_ClassicalModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
 
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice, 
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
@@ -162,9 +176,105 @@ function RingPolymer_ClassicalModel_Cache{T}(model::M, atoms::Integer, beads::In
     )
 end
 
+"""
+    struct: Friction_Cache{T,M} <: Abstract_Friction_Cache{T,M}
+        model::M
+        potential::DependentField{T,Matrix{T}}
+        derivative::DependentField{Matrix{T},Matrix{T}}
+        friction::DependentField{Matrix{T},Matrix{T}}
+        stats::Dict{Symbol,Int}
+
+Struct of type Abstract_Friction_Cache, used to store quantities (of data type `T`) generated by its input model `M`.
+"""
+struct Friction_Cache{T,M} <: Abstract_Friction_Cache{T,M} #was mutable struct - changed for efficiency, needs testing to determine if this is a code breaking change
+    model::M
+    potential::DependentField{T,Matrix{T}}
+    derivative::DependentField{Matrix{T},Matrix{T}}
+    friction::DependentField{Matrix{T},Matrix{T}}
+    stats::Dict{Symbol,Int}
+end
 
 """
-    QuantumModel_Cache{T,M,S,L} <: Abstract_QuantumModel_Cache{T,M}
+    function: Friction_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+
+Function which constructs and returns the struct of the same name. Takes as input an adiabatic friction model `M` of the users choice and 
+the number of atoms in the simulation.
+"""
+function Friction_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+    potential = zero(T)
+    derivative = zeros(ndofs(model), atoms)
+    friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
+
+    position = fill(NaN, ndofs(model), atoms)
+
+    stats = Dict{Symbol,Int}(
+        :potential=>0,
+        :derivative=>0,
+        :friction=>0,
+    )
+
+    return Friction_Cache{T,M}(
+        model,
+        DependentField(potential, copy(position)),
+        DependentField(derivative, copy(position)),
+        DependentField(friction, copy(position)),
+        stats
+    )
+end
+
+
+
+"""
+    struct: RingPolymer_Friction_Cache{T,M} <: Abstract_Friction_Cache{T,M}
+        model::M
+        potential::DependentField{T,Matrix{T}}
+        derivative::DependentField{Matrix{T},Matrix{T}}
+        friction::DependentField{Matrix{T},Matrix{T}}
+        stats::Dict{Symbol,Int}
+
+Struct of type Abstract_Friction_Cache, used to store quantities (of data type `T`) generated by its input model `M`.
+"""
+struct RingPolymer_Friction_Cache{T,M} <: AbstractFrictionCalculator{T,M}
+    model::M
+    potential::DependentField{Vector{T},Array{T,3}}
+    derivative::DependentField{Array{T,3},Array{T,3}}
+    friction::DependentField{Array{T,3},Array{T,3}}
+    stats::Dict{Symbol,Int}
+end
+
+"""
+    function: RingPolymer_Friction_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+
+Function which constructs and returns the struct of the same name. Takes as input an adiabatic model `M` of the users choice, 
+the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
+"""
+function RingPolymer_Friction_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+
+    potential = zeros(beads)
+    derivative = zeros(ndofs(model), atoms, beads)
+    friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms, beads)
+
+    position = fill(NaN, ndofs(model), atoms, beads)
+
+    stats = Dict{Symbol,Int}(
+        :potential=>0,
+        :derivative=>0,
+        :friction=>0,
+    )
+
+    return RingPolymer_Friction_Cache{T,M}(
+        model,
+        DependentField(potential, copy(position)),
+        DependentField(derivative, copy(position)),
+        DependentField(friction, copy(position)),
+        stats
+    )
+end
+
+
+
+"""
+    struct: SmallQuantumModel_Cache{T,M,S,L} <: Abstract_SmallQuantumModel_Cache{T,M}
         model::M
         potential::DependentField{Hermitian{T,SMatrix{S,S,T,L}},Matrix{T}}
         derivative::DependentField{Matrix{Hermitian{T,SMatrix{S,S,T,L}}},Matrix{T}}
@@ -173,9 +283,9 @@ end
         nonadiabatic_coupling::DependentField{Matrix{SMatrix{S,S,T,L}},Matrix{T}}
         stats::Dict{Symbol,Int}
 
-Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data types `T`, `S` and `L`) generated by its input model `M`.
+Struct of type Abstract_SmallQuantumModel_Cache, used to store quantities (of data types `T`, `S` and `L`) generated by its input model `M`.
 """
-struct QuantumModel_Cache{T,M,S,L} <: Abstract_QuantumModel_Cache{T,M}
+struct SmallQuantumModel_Cache{T,M,S,L} <: Abstract_SmallQuantumModel_Cache{T,M}
     model::M
     potential::DependentField{Hermitian{T,SMatrix{S,S,T,L}},Matrix{T}}
     derivative::DependentField{Matrix{Hermitian{T,SMatrix{S,S,T,L}}},Matrix{T}}
@@ -186,12 +296,12 @@ struct QuantumModel_Cache{T,M,S,L} <: Abstract_QuantumModel_Cache{T,M}
 end
 
 """
-    QuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+    function: SmallQuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice
 and the number of atoms in the simulation.
 """
-function QuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+function SmallQuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
     n = nstates(model)
     mat = NQCModels.DiabaticModels.matrix_template(model, T)
     vec = NQCModels.DiabaticModels.vector_template(model, T)
@@ -211,7 +321,7 @@ function QuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
         :nonadiabatic_coupling=>0
     )
 
-    return QuantumModel_Cache{T,M,n,n^2}(
+    return SmallQuantumModel_Cache{T,M,n,n^2}(
         model,
         DependentField(potential, copy(position)),
         DependentField(derivative, copy(position)),
@@ -224,7 +334,7 @@ end
 
 
 """
-    RingPolymer_QuantumModel_Cache{T,M,S,L} <: Abstract_QuantumModel_Cache{T,M}
+    struct: RingPolymer_SmallQuantumModel_Cache{T,M,S,L} <: Abstract_SmallQuantumModel_Cache{T,M}
         model::M
         potential::DependentField{Hermitian{T,SMatrix{S,S,T,L}},Matrix{T}}
         derivative::DependentField{Matrix{Hermitian{T,SMatrix{S,S,T,L}}},Matrix{T}}
@@ -247,9 +357,9 @@ end
 
         stats::Dict{Symbol,Int}
 
-Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data types `T`, `S` and `L`) generated by its input model `M`.
+Struct of type Abstract_SmallQuantumModel_Cache, used to store quantities (of data types `T`, `S` and `L`) generated by its input model `M`.
 """
-struct RingPolymer_QuantumModel_Cache{T,M,S,L} <: Abstract_QuantumModel_Cache{T,M}
+struct RingPolymer_SmallQuantumModel_Cache{T,M,S,L} <: Abstract_SmallQuantumModel_Cache{T,M}
     model::M
     potential::DependentField{Vector{Hermitian{T,SMatrix{S,S,T,L}}},Array{T,3}}
     derivative::DependentField{Array{Hermitian{T,SMatrix{S,S,T,L}},3},Array{T,3}}
@@ -274,12 +384,12 @@ struct RingPolymer_QuantumModel_Cache{T,M,S,L} <: Abstract_QuantumModel_Cache{T,
 end
 
 """
-    RingPolymer_QuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+    function: RingPolymer_SmallQuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
 
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice, 
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
-function RingPolymer_QuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+function RingPolymer_SmallQuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
     n = nstates(model)
     mat = NQCModels.DiabaticModels.matrix_template(model, T)
     vec = NQCModels.DiabaticModels.vector_template(model, T)
@@ -324,7 +434,7 @@ function RingPolymer_QuantumModel_Cache{T}(model::M, atoms::Integer, beads::Inte
         :centroid_nonadiabatic_coupling=>0,
     )
 
-    return RingPolymer_StaticArray_QuantumModel_Cache{T,M,n,n^2}(
+    return RingPolymer_SmallQuantumModel_Cache{T,M,n,n^2}(
         model,
         DependentField(potential, copy(position)),
         DependentField(derivative, copy(position)),
@@ -348,7 +458,170 @@ function RingPolymer_QuantumModel_Cache{T}(model::M, atoms::Integer, beads::Inte
     )
 end
 
-#Definitions of the Create_Cache function with creates a Cache of the appropriate type dependent on what model type it is given
+"""
+    struct: LargeQuantumModel_Cache{T,M,S,L} <: Abstract_LargeQuantumModel_Cache{T,M}
+        model::M
+        potential::DependentField{Hermitian{T,SMatrix{S,S,T,L}},Matrix{T}}
+        derivative::DependentField{Matrix{Hermitian{T,SMatrix{S,S,T,L}}},Matrix{T}}
+        eigen::DependentField{LinearAlgebra.Eigen{T,T,SMatrix{S,S,T,L},SVector{S,T}},Matrix{T}}
+        adiabatic_derivative::DependentField{Matrix{SMatrix{S,S,T,L}},Matrix{T}}
+        nonadiabatic_coupling::DependentField{Matrix{SMatrix{S,S,T,L}},Matrix{T}}
+        stats::Dict{Symbol,Int}
+
+Struct of type Abstract_LargeQuantumModel_Cache, used to store quantities (of data types `T`, `S` and `L`) generated by its input model `M`.
+"""
+struct LargeQuantumModel_Cache{T,M} <: Abstract_LargeQuantumModel_Cache{T,M}
+    model::M
+    potential::DependentField{Hermitian{T,Matrix{T}},Matrix{T}}
+    derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Matrix{T}}
+    eigen::DependentField{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}},Matrix{T}}
+    adiabatic_derivative::DependentField{Matrix{Matrix{T}},Matrix{T}}
+    nonadiabatic_coupling::DependentField{Matrix{Matrix{T}},Matrix{T}}
+    tmp_mat::Matrix{T}
+    stats::Dict{Symbol,Int}
+end
+
+"""
+    function: LargeQuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+
+Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice
+and the number of atoms in the simulation.
+"""
+function LargeQuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
+    mat = NQCModels.DiabaticModels.matrix_template(model, T)
+    vec = NQCModels.DiabaticModels.vector_template(model, T)
+
+    potential = Hermitian(zero(mat))
+    derivative = [Hermitian(zero(mat)) for i=1:ndofs(model), j=1:atoms]
+    eigen = Eigen(zero(vec), zero(mat)+I)
+    adiabatic_derivative = [zero(mat) for i=1:ndofs(model), j=1:atoms]
+    nonadiabatic_coupling = [zero(mat) for i=1:ndofs(model), j=1:atoms]
+    tmp_mat = zero(mat)
+
+    position = fill(NaN, ndofs(model), atoms)
+
+    stats = Dict{Symbol,Int}(
+        :potential=>0,
+        :derivative=>0,
+        :eigen=>0,
+        :adiabatic_derivative=>0,
+        :nonadiabatic_coupling=>0
+    )
+
+    return LargeQuantumModel_Cache{T,M}(
+        model,
+        DependentField(potential, copy(position)),
+        DependentField(derivative, copy(position)),
+        DependentField(eigen, copy(position)),
+        DependentField(adiabatic_derivative, copy(position)),
+        DependentField(nonadiabatic_coupling, copy(position)),
+        tmp_mat,
+        stats,
+    )
+end
+
+"""
+    struct: RingPolymer_LargeQuantumModel_Cache{T,M} <: Abstract_LargeQuantumModel_Cache{T,M}
+        model::M
+        potential::DependentField{Vector{Hermitian{T,Matrix{T}}},Array{T,3}}
+        derivative::DependentField{Array{Hermitian{T,Matrix{T}},3},Array{T,3}}
+        eigen::DependentField{Vector{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}},Array{T,3}}
+        adiabatic_derivative::DependentField{Array{Matrix{T},3},Array{T,3}}
+        nonadiabatic_coupling::DependentField{Array{Matrix{T},3},Array{T,3}}
+        tmp_mat::Matrix{T}
+
+        centroid::DependentField{Matrix{T},Array{T,3}}
+        centroid_potential::DependentField{Hermitian{T,Matrix{T}},Array{T,3}}
+        centroid_derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Array{T,3}}
+        centroid_eigen::DependentField{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}},Array{T,3}}
+        centroid_adiabatic_derivative::DependentField{Matrix{Matrix{T}},Array{T,3}}
+        centroid_nonadiabatic_coupling::DependentField{Matrix{Matrix{T}},Array{T,3}}
+
+        stats::Dict{Symbol,Int}
+
+Struct of type Abstract_LargeQuantumModel_Cache, used to store quantities (of data types `T`) generated by its input model `M`.
+"""
+struct RingPolymer_LargeQuantumModel_Cache{T,M} <: AbstractLargeQuantumModel_Cache{T,M}
+    model::M
+    potential::DependentField{Vector{Hermitian{T,Matrix{T}}},Array{T,3}}
+    derivative::DependentField{Array{Hermitian{T,Matrix{T}},3},Array{T,3}}
+    eigen::DependentField{Vector{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}},Array{T,3}}
+    adiabatic_derivative::DependentField{Array{Matrix{T},3},Array{T,3}}
+    nonadiabatic_coupling::DependentField{Array{Matrix{T},3},Array{T,3}}
+    tmp_mat::Matrix{T}
+
+    centroid::DependentField{Matrix{T},Array{T,3}}
+    centroid_potential::DependentField{Hermitian{T,Matrix{T}},Array{T,3}}
+    centroid_derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Array{T,3}}
+    centroid_eigen::DependentField{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}},Array{T,3}}
+    centroid_adiabatic_derivative::DependentField{Matrix{Matrix{T}},Array{T,3}}
+    centroid_nonadiabatic_coupling::DependentField{Matrix{Matrix{T}},Array{T,3}}
+
+    stats::Dict{Symbol,Int}
+end
+
+"""
+    function: RingPolymer_LargeQuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+
+Function which constructs and returns the struct of the same name. Takes as input an adiabatic model `M` of the users choice, 
+the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
+"""
+function RingPolymer_LargeQuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+    mat = NQCModels.DiabaticModels.matrix_template(model, T)
+    vec = NQCModels.DiabaticModels.vector_template(model, T)
+
+    potential = [Hermitian(zero(mat)) for _=1:beads]
+    derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    eigen = [Eigen(zero(vec), zero(mat)+I) for _=1:beads]
+    adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    nonadiabatic_coupling = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    tmp_mat = zero(mat)
+
+    centroid = zeros(T, ndofs(model), atoms)
+    centroid_potential = Hermitian(zero(mat))
+    centroid_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
+    centroid_eigen = Eigen(zero(vec), zero(mat) + I)
+    centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
+    centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
+
+    position = fill(NaN, ndofs(model), atoms, beads)
+
+    stats = Dict{Symbol,Int}(
+        :potential=>0,
+        :derivative=>0,
+        :eigen=>0,
+        :adiabatic_derivative=>0,
+        :nonadiabatic_coupling=>0,
+        :centroid=>0,
+        :centroid_potential=>0,
+        :centroid_derivative=>0,
+        :centroid_eigen=>0,
+        :centroid_adiabatic_derivative=>0,
+        :centroid_nonadiabatic_coupling=>0,
+    )
+
+    return RingPolymer_LargeQuantumModel_Cache{T,M}(
+        model,
+        DependentField(potential, copy(position)),
+        DependentField(derivative, copy(position)),
+        DependentField(eigen, copy(position)),
+        DependentField(adiabatic_derivative, copy(position)),
+        DependentField(nonadiabatic_coupling, copy(position)),
+        tmp_mat,
+
+        DependentField(centroid, copy(position)),
+        DependentField(centroid_potential, copy(position)),
+        DependentField(centroid_derivative, copy(position)),
+        DependentField(centroid_eigen, copy(position)),
+        DependentField(centroid_adiabatic_derivative, copy(position)),
+        DependentField(centroid_nonadiabatic_coupling, copy(position)),
+
+        stats,
+    )
+end
+
+
+#Multiple dispatch definitions of the Create_Cache function with creates a Cache of the appropriate type dependent on what model type it is given
 function Create_Cache(model::AdiabaticModel, atoms::Integer, t::Type{T}) where {T}  #functions of this type were called Calculator(model, atoms, t)
     ClassicalModel_Cache{t}(model, atoms)
 end
@@ -357,23 +630,42 @@ function Create_Cache(model::AdiabaticModel, atoms::Integer, beads::Integer, t::
     RingPolymer_ClassicalModel_Cache{t}(model, atoms, beads)
 end
 
+function Create_Cache(model::AdiabaticFrictionModel, atoms::Integer, t::Type{T}) where {T}
+    Friction_Cache{t}(model, atoms)
+end
+
+function Create_Cache(model::AdiabaticFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymer_Friction_Cache{t}(model, atoms, beads)
+end
+
+function Create_Cache(model::CompositeModel, atoms::Integer, t::Type{T}) where {T}
+    if any([!isa(s.model, AdiabaticModel) for s in NQCModels.get_pes_models(model.subsystems)])
+        throw(ArgumentError("Currently, only CompositeModels using AdiabaticModels to supply a PES are supported. "))
+    end
+    Friction_Cache{t}(model, atoms)
+end
+
+function Create_Cache(model::CompositeModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    if any([!isa(s.model, AdiabaticModel) for s in NQCModels.get_pes_models(model.subsystems)])
+        throw(ArgumentError("Currently, only CompositeModels using AdiabaticModels to supply a PES are supported. "))
+    end
+    RingPolymer_Friction_Cache{t}(model, atoms, beads)
+end
+
 function Create_Cache(model::DiabaticModel, atoms::Integer, t::Type{T}) where {T}
-    QuantumModel_Cache{t}(model, atoms)
+    SmallQuantumModel_Cache{t}(model, atoms)
 end
 
 function Create_Cache(model::DiabaticModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
-    RingPolymer_QuantumModel_Cache{t}(model, atoms, beads)
+    RingPolymer_SmallQuantumModel_Cache{t}(model, atoms, beads)
 end
 
-#Definitions of standard NQCModels functions on an Abstract Cache.
-NQCModels.nstates(cache::Abstract_Cache) = NQCModels.nstates(cache.model)
-NQCModels.eachstate(cache::Abstract_Cache) = NQCModels.eachstate(cache.model)
-NQCModels.nelectrons(cache::Abstract_Cache) = NQCModels.nelectrons(cache.model)
-NQCModels.eachelectron(cache::Abstract_Cache) = NQCModels.eachelectron(cache.model)
-NQCModels.mobileatoms(cache::Abstract_Cache) = NQCModels.mobileatoms(cache.model, size(cache.derivative, 2))
-NQCModels.dofs(cache::Abstract_Cache) = NQCModels.dofs(cache.model)
-NQCModels.fermilevel(cache::Abstract_Cache) = NQCModels.fermilevel(cache.model)
-beads(cache) = Base.OneTo(length(cache.potential))
-Base.eltype(::Abstract_Cache{T}) where {T} = T
+function Create_Cache(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
+    LargeQuantumModel_Cache{T}(model, atoms)
+end
 
-end # module
+function Create_Cache(model::LargeDiabaticModel, atoms::Integer, beads::Integer, T::Type=Float64)
+    RingPolymer_LargeQuantumModel_Cache{T}(model, atoms, beads)
+end
+
+end
