@@ -1,6 +1,6 @@
 using NQCCalculators
 using Test
 
-@testset "QCEngine.jl" begin
+@testset "NQCCalculators.jl" begin
     # Write your tests here.
 end
