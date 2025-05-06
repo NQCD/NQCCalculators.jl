@@ -223,7 +223,6 @@ function Friction_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 end
 
 
-
 """
     struct: RingPolymer_Friction_Cache{T,M} <: Abstract_Friction_Cache{T,M}
         model::M
