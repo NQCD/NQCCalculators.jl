@@ -1,4 +1,4 @@
-using QCEngine
+using NQCCalculators
 using Test
 
 @testset "QCEngine.jl" begin
