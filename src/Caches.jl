@@ -7,9 +7,6 @@ quantities obtained from `NQCModels` in a format which can be easily intregated 
 """
 module Caches
 
-include("large_diabatic.jl")
-include("ring_polymer_large_diabatic.jl")
-
 #Definitions of Abstract Cache structs
 """
     type: Abstract_Cache{M<:Model}

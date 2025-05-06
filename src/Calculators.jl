@@ -191,7 +191,7 @@ function evaluate_eigen!(cache::RingPolymer_SmallQuantumModel_Cache, r)
     return nothing
 end =#
 
-function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::Abstract_ExactQuantumModel_Cache, r)
     cache.stats[:adiabatic_derivative] += 1
     U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
@@ -261,7 +261,7 @@ function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_LargeQuantum
     return nothing
 end
 
-function evaluate_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r)
+function evaluate_nonadiabatic_coupling!(cache::Abstract_ExactQuantumModel_Cache, r)
     cache.stats[:nonadiabatic_coupling] += 1
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
     eigen = get_eigen(cache, r)
@@ -459,7 +459,7 @@ Evaluates all electronic properties for the current position `r`.
 
 This should no longer be used, instead access the quantities directly with `get_quantity(cache, r)`.
 """
-function update_electronics!(cache::Abstract_QuantumModel_Cache, r::AbstractArray)
+function update_electronics!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractArray)
     get_nonadiabatic_coupling(cache, r)
     return nothing
 end
