@@ -23,6 +23,9 @@ using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel, LargeDiaba
 using NQCModels.FrictionModels: AdiabaticFrictionModel
 
 include("Caches.jl")
+export Caches
+
 include("Calculators.jl")
+export Calculators
 
 end
