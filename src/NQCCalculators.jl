@@ -17,7 +17,7 @@ using LinearAlgebra
 using StaticArrays
 using RingPolymerArrays
 
-using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, Subsystem, CompositeModel
+using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.AdiabaticModels: AdiabaticModel
 using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel, LargeDiabaticModel
 using NQCModels.FrictionModels: AdiabaticFrictionModel
