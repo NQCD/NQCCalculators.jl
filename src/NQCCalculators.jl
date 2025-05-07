@@ -16,7 +16,11 @@ module NQCCalculators
 using LinearAlgebra
 using StaticArrays
 using RingPolymerArrays
-using NQCModels
+
+using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, Subsystem, CompositeModel
+using NQCModels.AdiabaticModels: AdiabaticModel
+using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel, LargeDiabaticModel
+using NQCModels.FrictionModels: AdiabaticFrictionModel
 
 include("Caches.jl")
 include("Calculators.jl")
