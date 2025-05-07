@@ -1,12 +1,4 @@
-"""
-    Caches
-
-This module defines the types, structs and core functions required for storing the
-quantities obtained from `NQCModels` in a format which can be easily intregated with
-`NQCDynamics`.
-"""
-module Caches
-
+using NQCModels
 #Definitions of Abstract Cache structs
 """
     type: Abstract_Cache{M<:Model}
@@ -662,6 +654,4 @@ end
 
 function Create_Cache(model::LargeDiabaticModel, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymer_LargeQuantumModel_Cache{T}(model, atoms, beads)
-end
-
 end

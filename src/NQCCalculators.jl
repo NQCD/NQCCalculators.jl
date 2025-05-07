@@ -17,7 +17,6 @@ using LinearAlgebra
 using StaticArrays
 using RingPolymerArrays
 using NQCModels
-using NQCDynamics
 
 include("Caches.jl")
 include("Calculators.jl")
