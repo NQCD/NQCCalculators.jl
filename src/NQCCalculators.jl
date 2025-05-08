@@ -18,9 +18,9 @@ using StaticArrays
 using RingPolymerArrays
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
-using NQCModels.AdiabaticModels: AdiabaticModel
-using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel, LargeDiabaticModel
-using NQCModels.FrictionModels: AdiabaticFrictionModel
+using NQCModels.ClassicalModels: ClassicalModel
+using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel, LargeQuantumModel
+using NQCModels.FrictionModels: ClassicalFrictionModel
 
 include("Caches.jl")
 export Abstract_Cache, Abstract_ClassicalModel_Cache, Abstract_Friction_Cache
