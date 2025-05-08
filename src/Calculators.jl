@@ -79,16 +79,15 @@ end
 
 #Definitions of evaluate functions
 
-function evaluate_potential!(cache::Abstract_Cache, r)
+function evaluate_potential!(cache::Abstract_Cache, r::AbstractMatrix)
     cache.stats[:potential] += 1
     NQCModels.potential!(cache.model, cache.potential, r)
-    return nothing
 end
 
 function evaluate_potential!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:potential] += 1
     @views @inbounds for i in beads(cache)
-        NQCModels.potential!(cache.model, cache.potential[i], hcat(r[:,:,i]))
+        NQCModels.potential!(cache.model, cache.potential[i], r[:,:,i])
     end
 end
 

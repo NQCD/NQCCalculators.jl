@@ -23,11 +23,10 @@ using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel, LargeDiaba
 using NQCModels.FrictionModels: AdiabaticFrictionModel
 
 include("Caches.jl")
-include("Calculators.jl")
-
 export Abstract_Cache, Abstract_ClassicalModel_Cache, Abstract_Friction_Cache
 export Abstract_ExactQuantumModel_Cache, Abstract_SmallQuantumModel_Cache, Abstract_LargeQuantumModel_Cache, Abstract_CorrelatedQuantumModel_Cache
 
+include("Calculators.jl")
 export ClassicalModel_Cache, RingPolymer_ClassicalModel_Cache
 export Friction_Cache, RingPolymer_Friction_Cache
 export SmallQuantumModel_Cache, RingPolymer_SmallQuantumModel_Cache
