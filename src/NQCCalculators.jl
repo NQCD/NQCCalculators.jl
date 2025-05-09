@@ -16,6 +16,7 @@ module NQCCalculators
 using LinearAlgebra
 using StaticArrays
 using RingPolymerArrays
+using NQCBase
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
@@ -25,12 +26,20 @@ using NQCModels.FrictionModels: ClassicalFrictionModel
 include("Caches.jl")
 export Abstract_Cache, Abstract_ClassicalModel_Cache, Abstract_Friction_Cache
 export Abstract_ExactQuantumModel_Cache, Abstract_SmallQuantumModel_Cache, Abstract_LargeQuantumModel_Cache, Abstract_CorrelatedQuantumModel_Cache
-
-include("Calculators.jl")
 export ClassicalModel_Cache, RingPolymer_ClassicalModel_Cache
 export Friction_Cache, RingPolymer_Friction_Cache
 export SmallQuantumModel_Cache, RingPolymer_SmallQuantumModel_Cache
 export LargeQuantumModel_Cache, RingPolymer_LargeQuantumModel_Cache
 export Create_Cache
 
+include("Calculators.jl")
+export evaluate_friction!, evaluate_derivative!
+export evaluate_eigen!, correct_phase!, correct_phase
+export evaluate_adiabatic_derivative!, evaluate_centroid_adiabatic_derivative!
+export evaluate_nonadiabatic_coupling!, evaluate_inverse_difference_matrix!, evaluate_nonadiabatic_coupling
+export evaluate_centroid_potential!, evaluate_centroid!, evaluate_centroid_nonadiabatic_coupling!
+export evaluate_traceless_adiabatic_derivative!, evaluate_traceless_potential!, evaluate_traceless_derivative!,  evaluate_D̄!, evaluate_V̄!
+export evaluate_centroid_potential!, evaluate_centroid_eigen!, evaluate_centroid_derivative!
+
+export update_electronics!, update_centroid_electronics!
 end

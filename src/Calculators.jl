@@ -469,14 +469,14 @@ function update_electronics!(cache::RingPolymer_SmallQuantumModel_Cache, r::Abst
     return nothing
 end
 
-function update_centroid_electronics!(cache::RingPolymer_SmallQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    get_centroid_nonadiabatic_coupling(cache, r)
-    return nothing
-end
-
 function update_electronics!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     get_nonadiabatic_coupling(cache, r)
     update_centroid_electronics!(cache, r)
+    return nothing
+end
+
+function update_centroid_electronics!(cache::RingPolymer_SmallQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    get_centroid_nonadiabatic_coupling(cache, r)
     return nothing
 end
 
