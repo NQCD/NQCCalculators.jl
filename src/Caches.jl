@@ -258,8 +258,6 @@ function RingPolymer_Friction_Cache{T}(model::M, atoms::Integer, beads::Integer)
     )
 end
 
-
-
 """
     struct: SmallQuantumModel_Cache{T,M,S,L} <: Abstract_SmallQuantumModel_Cache{T,M}
         model::M

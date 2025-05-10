@@ -105,10 +105,9 @@ function evaluate_potential!(cache::Abstract_Cache, r::AbstractArray{T,3}) where
     return nothing
 end =#
 
-
-function evaluate_derivative!(cache::Abstract_Cache, R)
+function evaluate_derivative!(cache::Abstract_Cache, R::AbstractMatrix)
     cache.stats[:derivative] += 1
-    NQCModels.derivative!(cache.model, cache.derivative, R)
+    NQCModels.derivative!(cache.model, cache.derivative, R::AbstractMatrix)
 end
 
 function evaluate_derivative!(cache::Abstract_Cache, R::AbstractArray{T,3}) where {T}
@@ -120,7 +119,7 @@ end
 
 function evaluate_friction!(cache::Abstract_Friction_Cache, R::AbstractMatrix)
     cache.stats[:friction] += 1
-    NQCModels.friction!(cache.model, cache.friction, R)
+    NQCModels.friction!(cache.model, cache.friction, R::AbstractMatrix)
 end
 
 function evaluate_friction!(cache::Abstract_Friction_Cache, R::AbstractArray{T,3}) where {T}
@@ -150,7 +149,7 @@ end
     end
 end =#
 
-function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r)
+function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractMatrix)
     cache.stats[:eigen] += 1
     potential = get_potential(cache, r)
     eig = LinearAlgebra.eigen(potential)
