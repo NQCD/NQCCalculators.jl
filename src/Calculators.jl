@@ -79,50 +79,48 @@ end
 
 #Definitions of evaluate functions
 
-function evaluate_potential!(cache::Abstract_Cache, r::AbstractMatrix)
+function evaluate_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
+    cache.stats[:potential] += 1
+    cache.potential = NQCModels.potential(cache.model, r)
+end
+
+function evaluate_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
+    cache.stats[:potential] += 1
+    @views @inbounds for i in beads(cache)
+        cache.potential[i] = NQCModels.potential(cache.model, r[:,:,i])
+    end
+end
+
+function evaluate_potential!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     cache.stats[:potential] += 1
     NQCModels.potential!(cache.model, cache.potential, r)
 end
 
-function evaluate_potential!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_potential!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:potential] += 1
     @views @inbounds for i in beads(cache)
         NQCModels.potential!(cache.model, cache.potential[i], r[:,:,i])
     end
 end
 
-#= function evaluate_potential!(cache::Abstract_Cache, r)
-    cache.stats[:potential] += 1
-    cache.potential = NQCModels.potential(cache.model, r)
-    return nothing
-end
-
-function evaluate_potential!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
-    cache.stats[:potential] += 1
-    @views for i in axes(r, 3)
-        cache.potential[i] = NQCModels.potential(cache.model, r[:,:,i])
-    end
-    return nothing
-end =#
-
 function evaluate_derivative!(cache::Abstract_Cache, R::AbstractMatrix)
     cache.stats[:derivative] += 1
-    NQCModels.derivative!(cache.model, cache.derivative, R::AbstractMatrix)
+    cache.derivative = NQCModels.derivative(cache.model, R::AbstractMatrix)
 end
 
 function evaluate_derivative!(cache::Abstract_Cache, R::AbstractArray{T,3}) where {T}
     cache.stats[:derivative] += 1
     @views for i in axes(R, 3)
-        NQCModels.derivative!(cache.model, cache.derivative[:,:,i], R[:,:,i])
+        cache.derivative[:,:,i] = NQCModels.derivative(cache.model, R[:,:,i])
     end
 end
 
-function evaluate_friction!(cache::Abstract_Friction_Cache, R::AbstractMatrix)
+function evaluate_friction!(cache::Abstract_Cache, R::AbstractMatrix)
     cache.stats[:friction] += 1
     NQCModels.friction!(cache.model, cache.friction, R::AbstractMatrix)
 end
 
-function evaluate_friction!(cache::Abstract_Friction_Cache, R::AbstractArray{T,3}) where {T}
+function evaluate_friction!(cache::Abstract_Cache, R::AbstractArray{T,3}) where {T}
     cache.stats[:friction] += 1
     @views for i in axes(R, 3)
         NQCModels.friction!(cache.model, cache.friction[:,:,i], R[:,:,i])
