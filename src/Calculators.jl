@@ -147,7 +147,7 @@ end
     end
 end =#
 
-function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractMatrix)
+function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     cache.stats[:eigen] += 1
     potential = get_potential(cache, r)
     eig = LinearAlgebra.eigen(potential)
@@ -156,7 +156,7 @@ function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractMat
     copyto!(cache.eigen.values, eig.values)
 end
 
-function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:eigen] += 1
     potential = get_potential(cache, r)
     @inbounds for i in beads(cache)
@@ -167,7 +167,7 @@ function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractArr
     end
 end
 
-#= function evaluate_eigen!(cache::Abstract_ExactQuantumModel_Cache, r)
+#= function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r)
     cache.stats[:eigen] += 1
     potential = get_potential(cache, r)
     eig = LinearAlgebra.eigen(potential)
@@ -176,7 +176,7 @@ end
     return nothing
 end
 
-function evaluate_eigen!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_eigen!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:eigen] += 1
     potential = get_potential(cache, r)
     for i=1:length(potential)
@@ -187,7 +187,7 @@ function evaluate_eigen!(cache::RingPolymer_SmallQuantumModel_Cache, r)
     return nothing
 end =#
 
-function evaluate_adiabatic_derivative!(cache::Abstract_ExactQuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
     cache.stats[:adiabatic_derivative] += 1
     U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
@@ -196,7 +196,7 @@ function evaluate_adiabatic_derivative!(cache::Abstract_ExactQuantumModel_Cache,
     end
 end
 
-function evaluate_adiabatic_derivative!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:adiabatic_derivative] += 1
     derivative = get_derivative(cache, r)
     eigen = get_eigen(cache, r)
@@ -209,7 +209,7 @@ function evaluate_adiabatic_derivative!(cache::RingPolymer_SmallQuantumModel_Cac
     end
 end
 
-function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:centroid_adiabatic_derivative] += 1
     centroid_derivative = get_centroid_derivative(cache, r)
     centroid_eigen = get_centroid_eigen(cache, r)
@@ -218,7 +218,7 @@ function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_SmallQuantum
     end
 end
 
-function evaluate_adiabatic_derivative!(cache::LargeQuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
     cache.stats[:adiabatic_derivative] += 1
     eigen = get_eigen(cache, r)
     derivative = get_derivative(cache, r)
@@ -230,7 +230,7 @@ function evaluate_adiabatic_derivative!(cache::LargeQuantumModel_Cache, r)
     end
 end
 
-function evaluate_adiabatic_derivative!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:adiabatic_derivative] += 1
     eigen = get_eigen(cache, r)
     derivative = get_derivative(cache, r)
@@ -244,7 +244,7 @@ function evaluate_adiabatic_derivative!(cache::RingPolymer_LargeQuantumModel_Cac
     end
 end
 
-function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:centroid_adiabatic_derivative] += 1
     eigen = get_centroid_eigen(cache, r)
     derivative = get_centroid_derivative(cache, r)
@@ -257,7 +257,7 @@ function evaluate_centroid_adiabatic_derivative!(cache::RingPolymer_LargeQuantum
     return nothing
 end
 
-function evaluate_nonadiabatic_coupling!(cache::Abstract_ExactQuantumModel_Cache, r)
+function evaluate_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r)
     cache.stats[:nonadiabatic_coupling] += 1
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
     eigen = get_eigen(cache, r)
@@ -266,7 +266,7 @@ function evaluate_nonadiabatic_coupling!(cache::Abstract_ExactQuantumModel_Cache
     end
 end
 
-function evaluate_centroid_nonadiabatic_coupling!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_centroid_nonadiabatic_coupling!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:centroid_nonadiabatic_coupling] += 1
     centroid_adiabatic_derivative = get_centroid_adiabatic_derivative(cache, r)
     centroid_eigen = get_centroid_eigen(cache, r)
@@ -275,7 +275,7 @@ function evaluate_centroid_nonadiabatic_coupling!(cache::RingPolymer_SmallQuantu
     end
 end
 
-function evaluate_nonadiabatic_coupling!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_nonadiabatic_coupling!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:nonadiabatic_coupling] += 1
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
     eigen = get_eigen(cache, r)
@@ -308,7 +308,7 @@ function evaluate_inverse_difference_matrix!(out, eigenvalues)
     end
 end
 
-function evaluate_nonadiabatic_coupling!(cache::LargeQuantumModel_Cache, r)
+function evaluate_nonadiabatic_coupling!(cache::QuantumModel_Cache, r)
     cache.stats[:nonadiabatic_coupling] += 1
     eigen = get_eigen(cache, r)
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
@@ -318,7 +318,7 @@ function evaluate_nonadiabatic_coupling!(cache::LargeQuantumModel_Cache, r)
     @. cache.nonadiabatic_coupling = adiabatic_derivative * cache.tmp_mat
 end
 
-function evaluate_nonadiabatic_coupling!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_nonadiabatic_coupling!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:nonadiabatic_coupling] += 1
     eigen = get_eigen(cache, r)
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
@@ -333,7 +333,7 @@ function evaluate_nonadiabatic_coupling!(cache::RingPolymer_LargeQuantumModel_Ca
     end
 end
 
-function evaluate_centroid_nonadiabatic_coupling!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_centroid_nonadiabatic_coupling!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:centroid_nonadiabatic_coupling] += 1
     adiabatic_derivative = get_centroid_adiabatic_derivative(cache, r)
     eigen = get_centroid_eigen(cache, r)
@@ -348,7 +348,7 @@ end
 
 
 #RingPolymer specific functions
-function evaluate_V̄!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_V̄!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:V̄] += 1
     potential = get_potential(cache, r)
     for i in 1:length(cache.V̄)
@@ -356,7 +356,7 @@ function evaluate_V̄!(cache::RingPolymer_SmallQuantumModel_Cache, r)
     end
 end
 
-function evaluate_traceless_potential!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_traceless_potential!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:traceless_potential] += 1
     n = nstates(cache.model)
     potential = get_potential(cache, r)
@@ -379,7 +379,7 @@ function evaluate_centroid_potential!(cache::Abstract_Cache, r::AbstractArray{T,
     cache.centroid_potential = NQCModels.potential(cache.model, centroid)
 end
 
-function evaluate_D̄!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_D̄!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:D̄] += 1
     derivative = get_derivative(cache, r)
     for I in eachindex(derivative)
@@ -387,7 +387,7 @@ function evaluate_D̄!(cache::RingPolymer_SmallQuantumModel_Cache, r)
     end
 end
 
-function evaluate_traceless_derivative!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_traceless_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:traceless_derivative] += 1
     n = nstates(cache.model)
     derivative = get_derivative(cache, r)
@@ -399,7 +399,7 @@ function evaluate_traceless_derivative!(cache::RingPolymer_SmallQuantumModel_Cac
     end
 end
 
-function evaluate_traceless_adiabatic_derivative!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_traceless_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:traceless_adiabatic_derivative] += 1
     n = nstates(cache.model)
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
@@ -417,7 +417,7 @@ function evaluate_centroid_derivative!(cache::Abstract_Cache, r::AbstractArray{T
     NQCModels.derivative!(cache.model, cache.centroid_derivative, centroid)
 end
 
-function evaluate_centroid_eigen!(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_centroid_eigen!(cache::RingPolymer_QuantumModel_Cache, r)
     cache.stats[:centroid_eigen] += 1
     potential = get_centroid_potential(cache, r)
     eig = LinearAlgebra.eigen(potential)
@@ -426,14 +426,14 @@ function evaluate_centroid_eigen!(cache::RingPolymer_SmallQuantumModel_Cache, r)
     return nothing
 end
 
-function evaluate_centroid_potential!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_centroid_potential!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:centroid_potential] += 1
     centroid = get_centroid(cache, r)
     NQCModels.potential!(cache.model, cache.centroid_potential, centroid)
     return nothing
 end
 
-function evaluate_centroid_eigen!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_centroid_eigen!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.stats[:centroid_eigen] += 1
     potential = get_centroid_potential(cache, r)
     eig = LinearAlgebra.eigen(potential)
@@ -455,29 +455,29 @@ Evaluates all electronic properties for the current position `r`.
 
 This should no longer be used, instead access the quantities directly with `get_quantity(cache, r)`.
 """
-function update_electronics!(cache::Abstract_ExactQuantumModel_Cache, r::AbstractArray)
+function update_electronics!(cache::Abstract_QuantumModel_Cache, r::AbstractArray)
     get_nonadiabatic_coupling(cache, r)
     return nothing
 end
 
-function update_electronics!(cache::RingPolymer_SmallQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    get_nonadiabatic_coupling(cache, r)
-    update_centroid_electronics!(cache, r)
-    return nothing
-end
-
-function update_electronics!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function update_electronics!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     get_nonadiabatic_coupling(cache, r)
     update_centroid_electronics!(cache, r)
     return nothing
 end
 
-function update_centroid_electronics!(cache::RingPolymer_SmallQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function update_electronics!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    get_nonadiabatic_coupling(cache, r)
+    update_centroid_electronics!(cache, r)
+    return nothing
+end
+
+function update_centroid_electronics!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     get_centroid_nonadiabatic_coupling(cache, r)
     return nothing
 end
 
-function update_centroid_electronics!(cache::RingPolymer_LargeQuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function update_centroid_electronics!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     get_centroid_nonadiabatic_coupling(cache, r)
     return nothing
 end
