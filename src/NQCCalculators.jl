@@ -26,9 +26,9 @@ include("Caches.jl")
 export Abstract_Cache, Abstract_ClassicalModel_Cache
 export Abstract_QuantumModel_Cache, Abstract_CorrelatedQuantumModel_Cache
 export ClassicalModel_Cache, RingPolymer_ClassicalModel_Cache
-export Friction_Cache, RingPolymer_Friction_Cache
-export SmallQuantumModel_Cache, RingPolymer_SmallQuantumModel_Cache
-export LargeQuantumModel_Cache, RingPolymer_LargeQuantumModel_Cache
+export ClassicalFrictionModel_Cache, RingPolymer_ClassicalFrictionModel_Cache
+export QuantumModel_Cache, RingPolymer_QuantumModel_Cache
+export QuantumFrictionModel_Cache, RingPolymer_QuantumFrictionModel_Cache
 export Create_Cache
 export needsupdate
 
