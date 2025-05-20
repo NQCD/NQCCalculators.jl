@@ -14,13 +14,12 @@ and methods needed to evaluate the quantities for each bead.
 module NQCCalculators
 
 using LinearAlgebra
-using StaticArrays
 using RingPolymerArrays
 using NQCBase
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
-using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel, LargeQuantumModel
+using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel
 using NQCModels.FrictionModels: ClassicalFrictionModel
 
 include("Caches.jl")
@@ -31,6 +30,7 @@ export Friction_Cache, RingPolymer_Friction_Cache
 export SmallQuantumModel_Cache, RingPolymer_SmallQuantumModel_Cache
 export LargeQuantumModel_Cache, RingPolymer_LargeQuantumModel_Cache
 export Create_Cache
+export needsupdate
 
 include("Calculators.jl")
 export evaluate_friction!, evaluate_derivative!
