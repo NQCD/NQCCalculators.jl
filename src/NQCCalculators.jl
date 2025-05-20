@@ -23,8 +23,8 @@ using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel
 using NQCModels.FrictionModels: ClassicalFrictionModel
 
 include("Caches.jl")
-export Abstract_Cache, Abstract_ClassicalModel_Cache, Abstract_Friction_Cache
-export Abstract_ExactQuantumModel_Cache, Abstract_SmallQuantumModel_Cache, Abstract_LargeQuantumModel_Cache, Abstract_CorrelatedQuantumModel_Cache
+export Abstract_Cache, Abstract_ClassicalModel_Cache
+export Abstract_QuantumModel_Cache, Abstract_CorrelatedQuantumModel_Cache
 export ClassicalModel_Cache, RingPolymer_ClassicalModel_Cache
 export Friction_Cache, RingPolymer_Friction_Cache
 export SmallQuantumModel_Cache, RingPolymer_SmallQuantumModel_Cache
