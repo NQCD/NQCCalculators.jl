@@ -82,11 +82,21 @@ function evaluate_potential!(cache::Abstract_QuantumModel_Cache, r::AbstractArra
     end
 end
 
-function evaluate_derivative!(cache::Abstract_Cache, R::AbstractMatrix)
+function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, R::AbstractMatrix)
+    NQCModels.derivative!(cache.model, cache.derivative, R::AbstractMatrix)
+end
+
+function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, R::AbstractArray{T,3}) where {T}
+    @views for i in axes(R, 3)
+        NQCModels.derivative!(cache.model, cache.derivative[:,:,i], R[:,:,i])
+    end
+end
+
+function evaluate_derivative!(cache::Abstract_QuantumModel_Cache, R::AbstractMatrix)
     NQCModels.derivative!.(Ref(cache.model), cache.derivative, Ref(R::AbstractMatrix))
 end
 
-function evaluate_derivative!(cache::Abstract_Cache, R::AbstractArray{T,3}) where {T}
+function evaluate_derivative!(cache::Abstract_QuantumModel_Cache, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
         NQCModels.derivative!.(Ref(cache.model), cache.derivative[:,:,i], Ref(R[:,:,i]))
     end

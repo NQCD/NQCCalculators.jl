@@ -628,13 +628,3 @@ end
 function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
     RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t)
 end
-
-#= 
-function Create_Cache(model::LargeQuantumModel, atoms::Integer, T::Type=Float64)
-    LargeQuantumModel_Cache{T}(model, atoms)
-end
-
-function Create_Cache(model::LargeQuantumModel, atoms::Integer, beads::Integer, T::Type=Float64)
-    RingPolymer_LargeQuantumModel_Cache{T}(model, atoms, beads)
-end
-=#
