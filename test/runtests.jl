@@ -183,9 +183,11 @@ end
         cache = reset_cache()
 
         # Reset the position fields
-#=         for name in standard_quantities
+        #=         
+        for name in standard_quantities
             getfield(cache, name).position .= NaN
-        end =#
+        end 
+        =#
 
         #NQCCalculators.get_nonadiabatic_coupling(cache, r)
         NQCCalculators.update_electronics!(cache, r)
@@ -212,16 +214,20 @@ end
         cache = reset_cache()
         r_centroid = RingPolymerArrays.get_centroid(r)
         # Check the position fields are different
-#=         for name in centroid_quantities
+        #=         
+        for name in centroid_quantities
             @test getfield(cache, name).position != r
-        end =#
+        end 
+        =#
 
         NQCCalculators.update_electronics!(cache, r)
 
         # Check the position fields are correct
-#=         for name in centroid_quantities
+        #=         
+        for name in centroid_quantities
             @test getfield(cache, name).position == r
-        end =#
+        end 
+        =#
 
         # Check all the results
         @test cache.centroid_potential ≈ potential(model, r_centroid)
@@ -312,17 +318,19 @@ end
         NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
         NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
 
-#=         @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
+        #=         
+        @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
         @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
         @test @allocated(NQCCalculators.evaluate_eigen!(cache, r)) == 10 * allocs_LargeDiabatic
         @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0 =#
+        @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0 
+        =#
     end
 end
 
-@testset "Friction_Cache" begin
+@testset "ClassicalFrictionModel_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
-    cache = NQCCalculators.Friction_Cache(model, 1, Float64) 
+    cache = NQCCalculators.ClassicalFrictionModel_Cache(model, 1, Float64) 
     r = rand(1,1)
 
     NQCCalculators.get_potential(cache, r)
@@ -332,11 +340,13 @@ end
     NQCCalculators.evaluate_potential!(cache, r)
     NQCCalculators.evaluate_derivative!(cache, r)
     NQCCalculators.evaluate_friction!(cache, r)
-#=     @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
+    #=  
+    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
     @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
     global allocs_Friction = @allocated(NQCCalculators.evaluate_friction!(cache, r)) 
     @debug "Friction_Cache.evaluate_friction made $(allocs_Friction) allocations. This should be around 250."
-    @test allocs_Friction ≤ 250 =#
+    @test allocs_Friction ≤ 250 
+    =#
 end
 
 @testset "RingPolymer_Friction_Cache" begin
@@ -351,7 +361,9 @@ end
     NQCCalculators.evaluate_potential!(cache, r)
     NQCCalculators.evaluate_derivative!(cache, r)
     NQCCalculators.evaluate_friction!(cache, r)
-#=     @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
+    #=  
+    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
     @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_friction!(cache, r)) == 10 * allocs_Friction =#
+    @test @allocated(NQCCalculators.evaluate_friction!(cache, r)) == 10 * allocs_Friction
+    =#
 end
