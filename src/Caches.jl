@@ -33,36 +33,6 @@ interacting electrons and therefore cannot be solved with exact diagonalisation.
 """
 abstract type Abstract_CorrelatedQuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T, M} end #type didn't formerly exist
 
-#= 
-"""
-    type: Abstract_Friction_Cache{T, M<:Union{ClassicalFrictionModel, CompositeModel}} <: Abstract_Cache{T, M}
-
-Type for storing quantities obtained from models defined in terms of a friction tensor. Examples include the 
-constant friction (FrictionModels.ConstantFriction), random friction (FrictionModels.RandomFriction) and 
-composite friction models (FrictionModels.CompositeFrictionModel) - the latter of which exists as a framework for combining a 
-friction model with an classical potential energy surface. 
-"""
-abstract type Abstract_Friction_Cache{T, M<:Union{ClassicalFrictionModel, CompositeModel}} <: Abstract_Cache{T, M} end #type was called AbstractFrictionCalculator
-
-"""
-    type: Abstract_SmallQuantumModel_Cache{T, M} <: Abstract_ExactQuantumModel_Cache{T, M}
-
-Type for storing quantities obtained from models defined in terms of quantum Hamiltonians for single particles. 
-For these systems, the Hamiltonains are defined in terms of small matrices so StaticArrays are used for efficiency. 
-Examples include the double well potential model (QuantumModels.DoubleWell), the spin-boson model (QuantumModels.SpinBoson)
-and the Erpenbeck-Thoss model (QuantumModel.ErpenbeckThoss)
-"""
-abstract type Abstract_SmallQuantumModel_Cache{T, M} <: Abstract_ExactQuantumModel_Cache{T, M} end #type was called AbstractStaticDiabaticCalculator
-
-"""
-    type: Abstract_LargeQuantumModel_Cache{T, M<:Union{QuantumFrictionModel, QuantumModel}} <: Abstract_ExactQuantumModel_Cache{T, M}
-
-Type for storing quantities obtained from models defined in terms of large single particle quantum Hamiltonians or quantum Hamiltonians 
-for many independent particles. For these models, the Hamiltonians are large enough that StaticArrays become inefficient.
-The key example is the Anderson-Holstein model (QuantumModels.AndersonHolstein).
-"""
-abstract type Abstract_LargeQuantumModel_Cache{T, M} <: Abstract_ExactQuantumModel_Cache{T, M} end #type was called AbstractLargeDiabaticCalculator
-=#
 
 
 #Definitions for the concrete Subtypes of the above Cache Types

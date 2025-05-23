@@ -86,9 +86,9 @@ function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, R::AbstractM
     NQCModels.derivative!(cache.model, cache.derivative, R::AbstractMatrix)
 end
 
-function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, R::AbstractArray{T,3}) where {T}
-    @views for i in axes(R, 3)
-        NQCModels.derivative!(cache.model, cache.derivative[:,:,i], R[:,:,i])
+function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
+    @inbounds for i in beads(cache)
+        NQCModels.derivative!(cache.model, cache.derivative[:,:,i], r[:,:,i])
     end
 end
 
@@ -97,7 +97,7 @@ function evaluate_derivative!(cache::Abstract_QuantumModel_Cache, R::AbstractMat
 end
 
 function evaluate_derivative!(cache::Abstract_QuantumModel_Cache, R::AbstractArray{T,3}) where {T}
-    @views for i in axes(R, 3)
+    @views @inbounds for i in beads(cache)
         NQCModels.derivative!.(Ref(cache.model), cache.derivative[:,:,i], Ref(R[:,:,i]))
     end
 end
