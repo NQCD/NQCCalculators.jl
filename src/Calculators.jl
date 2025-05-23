@@ -90,6 +90,7 @@ function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, r::AbstractA
     @views @inbounds for i in beads(cache)
         NQCModels.derivative!(cache.model, cache.derivative[:,:,i], r[:,:,i])
     end
+    return nothing
 end
 
 function evaluate_derivative!(cache::Abstract_QuantumModel_Cache, R::AbstractMatrix)
