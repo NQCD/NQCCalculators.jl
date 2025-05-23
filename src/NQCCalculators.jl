@@ -41,5 +41,5 @@ export evaluate_centroid_potential!, evaluate_centroid!, evaluate_centroid_nonad
 export evaluate_traceless_adiabatic_derivative!, evaluate_traceless_potential!, evaluate_traceless_derivative!,  evaluate_D̄!, evaluate_V̄!
 export evaluate_centroid_potential!, evaluate_centroid_eigen!, evaluate_centroid_derivative!
 
-export update_electronics!, update_centroid_electronics!
+export update_cache!, update_centroid!
 end
