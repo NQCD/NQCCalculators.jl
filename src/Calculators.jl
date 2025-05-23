@@ -60,6 +60,7 @@ for quantity in quantities
     end
 end
 
+
 #Definitions of evaluate functions
 
 function evaluate_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
@@ -392,19 +393,56 @@ function evaluate_centroid_eigen!(cache::Abstract_QuantumModel_Cache, r::Abstrac
     return nothing
 end
 
+#= 
+function get_Lukas(cache::Abstract_Cache, r::AbstractMatrix)
+    println(nothing)
+end
+=#
+
 #update functions
 """
-Evaluates all electronic properties for the current position `r`.
-# Properties evaluated:
+Evaluates all model properties stored in the cache for the current position `r`.
+# Properties that may be evaluated:
 - Diabatic potential
 - Diabatic derivative
 - Eigenvalues and eigenvectors
 - Adiabatic derivative
 - Nonadiabatic coupling
+- Friction tensor
 
-This should no longer be used, instead access the quantities directly with `get_quantity(cache, r)`.
+- Centroid equivalents of the above 
 """
-function update_electronics!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+function update_cache!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
+    evaluate_potential!(cache, r)
+    evaluate_derivative!(cache, r)
+    return nothing
+end
+
+function update_cache!(cache::ClassicalFrictionModel_Cache, r::AbstractMatrix)
+    evaluate_potential!(cache, r)
+    evaluate_derivative!(cache, r)
+    evaluate_friction!(cache, r)
+    return nothing
+end
+
+function update_cache!(cache::RingPolymer_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
+    evaluate_potential!(cache, r)
+    evaluate_derivative!(cache, r)
+
+    update_centroid!(cache, r)
+    return nothing
+end
+
+function update_cache!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+    evaluate_potential!(cache, r)
+    evaluate_derivative!(cache, r)
+    evaluate_friction!(cache, r)
+
+    update_centroid!(cache, r)
+    return nothing
+end
+
+function update_cache!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     evaluate_potential!(cache, r)
     evaluate_derivative!(cache, r)
     evaluate_eigen!(cache, r)
@@ -413,7 +451,7 @@ function update_electronics!(cache::Abstract_QuantumModel_Cache, r::AbstractMatr
     return nothing
 end
 
-function update_electronics!(cache::QuantumFrictionModel_Cache, r::AbstractMatrix)
+function update_cache!(cache::QuantumFrictionModel_Cache, r::AbstractMatrix)
     evaluate_potential!(cache, r)
     evaluate_derivative!(cache, r)
     evaluate_eigen!(cache, r)
@@ -423,18 +461,18 @@ function update_electronics!(cache::QuantumFrictionModel_Cache, r::AbstractMatri
     return nothing
 end
 
-function update_electronics!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function update_cache!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     evaluate_potential!(cache, r)
     evaluate_derivative!(cache, r)
     evaluate_eigen!(cache, r)
     evaluate_adiabatic_derivative!(cache, r)
     evaluate_nonadiabatic_coupling!(cache, r)
 
-    update_centroid_electronics!(cache, r)
+    update_centroid!(cache, r)
     return nothing
 end
 
-function update_electronics!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+function update_cache!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
     evaluate_potential!(cache, r)
     evaluate_derivative!(cache, r)
     evaluate_eigen!(cache, r)
@@ -442,11 +480,37 @@ function update_electronics!(cache::RingPolymer_QuantumFrictionModel_Cache, r::A
     evaluate_nonadiabatic_coupling!(cache, r)
     evaluate_friction!(cache, r)
 
-    update_centroid_electronics!(cache, r)
+    update_centroid!(cache, r)
     return nothing
 end
 
-function update_centroid_electronics!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+
+"""
+Evaluates all model properties stored in the cache for the current centroid position `r_centroid`.
+# Properties that may be evaluated:
+- Diabatic potential
+- Diabatic derivative
+- Eigenvalues and eigenvectors
+- Adiabatic derivative
+- Nonadiabatic coupling
+- Friction tensor 
+"""
+function update_centroid!(cache::RingPolymer_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
+    evaluate_centroid!(cache, r)
+    evaluate_centroid_potential!(cache, r)
+    evaluate_centroid_derivative!(cache, r)
+    return nothing
+end
+
+function update_centroid!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+    evaluate_centroid!(cache, r)
+    evaluate_centroid_potential!(cache, r)
+    evaluate_centroid_derivative!(cache, r)
+    evaluate_centroid_friction!(cache, r)
+    return nothing
+end
+
+function update_centroid!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     evaluate_centroid!(cache, r)
     evaluate_centroid_potential!(cache, r)
     evaluate_centroid_derivative!(cache, r)
@@ -456,7 +520,7 @@ function update_centroid_electronics!(cache::RingPolymer_QuantumModel_Cache, r::
     return nothing
 end
 
-function update_centroid_electronics!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+function update_centroid!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
     evaluate_centroid!(cache, r)
     evaluate_centroid_potential!(cache, r)
     evaluate_centroid_derivative!(cache, r)
