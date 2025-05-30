@@ -181,7 +181,7 @@ function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,
 end
 
 function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
-    U = get_eigen(cache, r)[1].vectors
+    U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
     for I in eachindex(diabatic_derivative)
         cache.adiabatic_derivative[I] .= U' * diabatic_derivative[I] * U
