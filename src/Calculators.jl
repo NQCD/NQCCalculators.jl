@@ -166,7 +166,7 @@ function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,
     return nothing
 end
 
-function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
     U = get_eigen(cache, r)[1].vectors
     diabatic_derivative = get_derivative(cache, r)
     for I in eachindex(diabatic_derivative)
@@ -175,7 +175,7 @@ function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
     return nothing
 end
 
-function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     derivative = get_derivative(cache, r)
     eigen = get_eigen(cache, r)
     for i in axes(derivative, 3) # Beads
