@@ -107,20 +107,34 @@ function evaluate_derivative!(cache::Abstract_QuantumModel_Cache, R::AbstractArr
     return nothing
 end
 
-function evaluate_friction!(cache::Abstract_Cache, R::AbstractMatrix)
+function evaluate_friction!(cache::Abstract_ClassicalModel_Cache, R::AbstractMatrix)
     NQCModels.friction!(cache.model, cache.friction, R::AbstractMatrix)
 end
 
-function evaluate_friction!(cache::Abstract_Cache, R::AbstractArray{T,3}) where {T}
+function evaluate_friction!(cache::Abstract_ClassicalModel_Cache, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
         NQCModels.friction!(cache.model, cache.friction[:,:,i], R[:,:,i])
     end
     return nothing
 end
 
-function evaluate_centroid_friction!(cache::Abstract_Cache, R::AbstractArray{T,3}) where {T}
+function evaluate_centroid_friction!(cache::Abstract_ClassicalModel_Cache, R::AbstractArray{T,3}) where {T}
     centroid = RingPolymerArrays.get_centroid(R)
     NQCModels.friction!(cache.model, cache.centroid_friction, centroid)
+end
+
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatrix, r::AbstractMatrix)
+    μ = NQCModels.fermilevel(cache.model)
+    if sim.method.friction_method isa WideBandExact
+        potential = get_potential(cache, r)
+        derivative = get_derivative(cache, r)
+        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ)
+    else
+        ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
+        eigen = Calculators.get_eigen(sim.calculator, r)
+        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ)
+    end
+    return Λ
 end
 
 #= 
@@ -170,7 +184,7 @@ function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
     U = get_eigen(cache, r)[1].vectors
     diabatic_derivative = get_derivative(cache, r)
     for I in eachindex(diabatic_derivative)
-        cache.adiabatic_derivative[I] = U' * diabatic_derivative[I] * U
+        cache.adiabatic_derivative[I] .= U' * diabatic_derivative[I] * U
     end
     return nothing
 end
@@ -181,7 +195,7 @@ function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::A
     for i in axes(derivative, 3) # Beads
         for j in axes(derivative, 2) # Atoms
             for k in axes(derivative, 1) # DoFs
-                cache.adiabatic_derivative[k,j,i] = eigen[i].vectors' * derivative[k,j,i] * eigen[i].vectors
+                cache.adiabatic_derivative[k,j,i] .= eigen[i].vectors' * derivative[k,j,i] * eigen[i].vectors
             end
         end
     end
