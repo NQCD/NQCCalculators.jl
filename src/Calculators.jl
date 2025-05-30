@@ -166,8 +166,8 @@ function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,
     return nothing
 end
 
-function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
-    U = get_eigen(cache, r).vectors
+function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
+    U = get_eigen(cache, r)[1].vectors
     diabatic_derivative = get_derivative(cache, r)
     for I in eachindex(diabatic_derivative)
         cache.adiabatic_derivative[I] = U' * diabatic_derivative[I] * U
@@ -175,7 +175,7 @@ function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
     return nothing
 end
 
-function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     derivative = get_derivative(cache, r)
     eigen = get_eigen(cache, r)
     for i in axes(derivative, 3) # Beads
@@ -197,7 +197,7 @@ function evaluate_centroid_adiabatic_derivative!(cache::Abstract_QuantumModel_Ca
     return nothing
 end
 
-function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
+#= function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
     eigen = get_eigen(cache, r)
     derivative = get_derivative(cache, r)
     @inbounds for i in NQCModels.mobileatoms(cache)
@@ -221,7 +221,7 @@ function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r
         end
     end
     return nothing
-end
+end =#
 
 
 """
@@ -392,12 +392,6 @@ function evaluate_centroid_eigen!(cache::Abstract_QuantumModel_Cache, r::Abstrac
     cache.centroid_eigen.vectors .= eig.vectors
     return nothing
 end
-
-#= 
-function get_Lukas(cache::Abstract_Cache, r::AbstractMatrix)
-    println(nothing)
-end
-=#
 
 #update functions
 """

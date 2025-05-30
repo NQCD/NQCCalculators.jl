@@ -488,8 +488,6 @@ struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cach
     centroid_adiabatic_derivative::Matrix{Matrix{T}}
     centroid_nonadiabatic_coupling::Matrix{Matrix{T}}
     centroid_friction::Matrix{T}
-
-    
 end
 
 """
