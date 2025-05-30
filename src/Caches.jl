@@ -508,7 +508,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
     adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     eigen = [Eigen(zero(vec), zero(mat) + I) for _=1:beads]
     nonadiabatic_coupling = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    friction = [zeros(ndofs(model)*atoms, ndofs(model)*atoms) for _=1:beads]
+    friction = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     tmp_mat = zero(mat)
 
     traceless_potential = [Hermitian(zero(mat)) for _=1:beads]
