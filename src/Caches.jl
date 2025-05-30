@@ -423,7 +423,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<
     friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
     tmp_mat = zero(mat)
 
-    position = fill(NaN, ndofs(model), atoms)
+    position = zeros(ndofs(model), atoms)
 
     return QuantumFrictionModel_Cache{T,M}(
         model,
