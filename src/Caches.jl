@@ -395,7 +395,7 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     model::M
-    friction_method::Symbol
+    friction_method::Any
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
@@ -469,7 +469,7 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     model::M
-    friction_method::Symbol
+    friction_method::Any
     potential::Vector{Hermitian{T,Matrix{T}}}
     derivative::Array{Hermitian{T,Matrix{T}},3}
     eigen::Vector{LinearAlgebra.Eigen{T,T,Matrix{T}, Vector{T}}}
