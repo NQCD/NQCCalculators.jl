@@ -137,6 +137,20 @@ function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatr
     return Λ
 end
 
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatrix, r::AbstractArray{T,3})
+    μ = NQCModels.fermilevel(cache.model)
+    if sim.method.friction_method isa WideBandExact
+        potential = get_potential(cache, r)
+        derivative = get_derivative(cache, r)
+        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ)
+    else
+        ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
+        eigen = Calculators.get_eigen(sim.calculator, r)
+        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ)
+    end
+    return Λ
+end
+
 #= 
     function correct_phase(new_vectors::SMatrix, old_vectors::SMatrix)
     n = size(new_vectors, 1)
