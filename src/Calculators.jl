@@ -129,6 +129,8 @@ function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatri
         potential = get_potential(cache, r)
         derivative = get_derivative(cache, r)
         fill_friction_tensor!(cache.friction, cache.friction_method, potential, derivative, r, μ)
+    elseif cache.friction_method isnothing
+        cache.friction .= zero(cache.friction)
     else
         ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
         eigen = Calculators.get_eigen(sim.calculator, r)
@@ -142,6 +144,8 @@ function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray
         potential = get_potential(cache, r)
         derivative = get_derivative(cache, r)
         fill_friction_tensor!(cache.friction, sim.method.friction_method, potential, derivative, r, μ)
+    elseif cache.friction_method isnothing
+        cache.friction .= zero(cache.friction)
     else
         ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
         eigen = Calculators.get_eigen(sim.calculator, r)

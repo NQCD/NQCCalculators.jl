@@ -395,13 +395,13 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     model::M
+    friction_method::Symbol
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     friction::Matrix{T}
-    friction_method::Symbol
     tmp_mat::Matrix{T}
 end
 
@@ -428,6 +428,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<
 
     return QuantumFrictionModel_Cache{T,M}(
         model,
+        friction_method=nothing,
         potential,
         derivative,
         eigen,
@@ -468,13 +469,13 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     model::M
+    friction_method::Symbol
     potential::Vector{Hermitian{T,Matrix{T}}}
     derivative::Array{Hermitian{T,Matrix{T}},3}
     eigen::Vector{LinearAlgebra.Eigen{T,T,Matrix{T}, Vector{T}}}
     adiabatic_derivative::Array{Matrix{T},3}
     nonadiabatic_coupling::Array{Matrix{T},3}
     friction::Array{Matrix{T},3}
-    friction_method::Symbol
     tmp_mat::Matrix{T}
 
     traceless_potential::Vector{Hermitian{T,Matrix{T}}}
@@ -527,6 +528,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
 
     return RingPolymer_QuantumFrictionModel_Cache{T,M}(
         model,
+        friction_method=nothing,
         potential,
         derivative,
         eigen,
