@@ -137,7 +137,7 @@ function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatr
     return Λ
 end
 
-function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatrix, r::AbstractArray{T,3})
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatrix, r::AbstractArray{T,3}) where {T}
     μ = NQCModels.fermilevel(cache.model)
     if sim.method.friction_method isa WideBandExact
         potential = get_potential(cache, r)
