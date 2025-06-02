@@ -401,6 +401,7 @@ struct QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     friction::Matrix{T}
+    friction_method::Symbol
     tmp_mat::Matrix{T}
 end
 
@@ -473,6 +474,7 @@ struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cach
     adiabatic_derivative::Array{Matrix{T},3}
     nonadiabatic_coupling::Array{Matrix{T},3}
     friction::Array{Matrix{T},3}
+    friction_method::Symbol
     tmp_mat::Matrix{T}
 
     traceless_potential::Vector{Hermitian{T,Matrix{T}}}
