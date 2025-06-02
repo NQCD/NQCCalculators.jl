@@ -123,32 +123,31 @@ function evaluate_centroid_friction!(cache::Abstract_ClassicalModel_Cache, R::Ab
     NQCModels.friction!(cache.model, cache.centroid_friction, centroid)
 end
 
-function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatrix, r::AbstractMatrix)
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     μ = NQCModels.fermilevel(cache.model)
     if sim.method.friction_method isa WideBandExact
         potential = get_potential(cache, r)
         derivative = get_derivative(cache, r)
-        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ)
+        fill_friction_tensor!(cache.friction, sim.method.friction_method, potential, derivative, r, μ)
     else
         ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
         eigen = Calculators.get_eigen(sim.calculator, r)
-        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ)
+        fill_friction_tensor!(cache.friction, sim.method.friction_method, ∂H, eigen, r, μ)
     end
     return Λ
 end
 
-function evaluate_friction!(cache::Abstract_QuantumModel_Cache, Λ::AbstractMatrix, r::AbstractArray{T,3}) where {T}
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     μ = NQCModels.fermilevel(cache.model)
     if sim.method.friction_method isa WideBandExact
         potential = get_potential(cache, r)
         derivative = get_derivative(cache, r)
-        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ)
+        fill_friction_tensor!(cache.friction, sim.method.friction_method, potential, derivative, r, μ)
     else
         ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
         eigen = Calculators.get_eigen(sim.calculator, r)
-        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ)
+        fill_friction_tensor!(cache.friction, sim.method.friction_method, ∂H, eigen, r, μ)
     end
-    return Λ
 end
 
 #= 
