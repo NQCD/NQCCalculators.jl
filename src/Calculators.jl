@@ -260,7 +260,7 @@ end =#
 """
 function evaluate_nonadiabatic_coupling(adiabatic_derivative::AbstractMatrix, eigenvalues::AbstractVector)
     n = length(eigenvalues)
-    coupling_matrix = zeros(eltype(AbstractMatrix), n, n)
+    coupling_matrix = zeros(eltype(adiabatic_derivative), n, n)
     @. coupling_matrix = adiabatic_derivative / (eigenvalues - eigenvalues')
   
     return coupling_matrix
