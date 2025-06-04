@@ -52,7 +52,6 @@ needsupdate(field::DependentField, r) = field.position != r
 
 for quantity in quantities
     get_quantity = Symbol(:get_, quantity)
-    evaluate_quantity! = Symbol(:evaluate_, quantity, :!)
     field = Expr(:call, :getfield, :cache, QuoteNode(quantity))
 
     @eval function $(get_quantity)(cache, r)
