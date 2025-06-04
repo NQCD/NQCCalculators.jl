@@ -153,28 +153,12 @@ function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray
     end
 end
 
-#= 
-    function correct_phase(new_vectors::SMatrix, old_vectors::SMatrix)
-    n = size(new_vectors, 1)
-    vect = SVector{n}(sign(LinearAlgebra.dot(new_vectors[:,i], old_vectors[:,i])) for i=1:n)
-    return new_vectors .* vect'
-end
- =#
-
 function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
     @views for i in 1:length(eig.values)
         eig.vectors[:,i] .*= sign(LinearAlgebra.dot(eig.vectors[:,i], old_eigenvectors[:,i]))
     end
     return nothing
 end
-
-#= function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
-    @views for i=1:length(eig.values)
-        if LinearAlgebra.dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
-            eig.vectors[:,i] .*= -1
-        end
-    end
-end =#
 
 function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = get_potential(cache, r)
@@ -196,7 +180,7 @@ function evaluate_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,
     return nothing
 end
 
-function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r)
+function evaluate_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
     for I in eachindex(diabatic_derivative)
@@ -227,34 +211,8 @@ function evaluate_centroid_adiabatic_derivative!(cache::Abstract_QuantumModel_Ca
     return nothing
 end
 
-#= function evaluate_adiabatic_derivative!(cache::QuantumModel_Cache, r)
-    eigen = get_eigen(cache, r)
-    derivative = get_derivative(cache, r)
-    @inbounds for i in NQCModels.mobileatoms(cache)
-        for j in NQCModels.dofs(cache)
-            LinearAlgebra.mul!(cache.tmp_mat, derivative[j,i], eigen.vectors)
-            LinearAlgebra.mul!(cache.adiabatic_derivative[j,i], eigen.vectors', cache.tmp_mat)
-        end
-    end
-    return nothing
-end
 
-function evaluate_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    eigen = get_eigen(cache, r)
-    derivative = get_derivative(cache, r)
-    @inbounds for i in beads(cache)
-        for j in mobileatoms(cache)
-            for k in dofs(cache)
-                LinearAlgebra.mul!(cache.tmp_mat, derivative[k,j,i], eigen[i].vectors)
-                LinearAlgebra.mul!(cache.adiabatic_derivative[k,j,i], eigen[i].vectors', cache.tmp_mat)
-            end
-        end
-    end
-    return nothing
-end =#
-
-
-"""
+#= """
 # References
 
 - HammesSchifferTully_JChemPhys_101_4657_1994 Eq. (32)
@@ -275,19 +233,25 @@ function evaluate_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r)
         cache.nonadiabatic_coupling[I] = evaluate_nonadiabatic_coupling(adiabatic_derivative[I], eigen.values)
     end
     return nothing
-end
-
-#= function evaluate_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    adiabatic_derivative = get_adiabatic_derivative(cache, r)
-    eigen = get_eigen(cache, r)
-    for i in eachindex(eigen) # Beads
-        for I in CartesianIndices(size(adiabatic_derivative)[1:2])
-            cache.nonadiabatic_coupling[I,i] = evaluate_nonadiabatic_coupling(adiabatic_derivative[I,i], eigen[i].values)
-        end
-    end
 end =#
 
-function evaluate_nonadiabatic_coupling!(cache::QuantumModel_Cache, r)
+function evaluate_inverse_difference_matrix!(out, eigenvalues)
+    @inbounds for i in eachindex(eigenvalues)
+        for j in eachindex(eigenvalues)
+            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j])
+        end
+        out[i,i] = zero(eltype(out))
+    end
+    return nothing
+end
+
+"""
+# References
+
+- HammesSchifferTully_JChemPhys_101_4657_1994 Eq. (32)
+- SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, section 2.3
+"""
+function evaluate_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     eigen = get_eigen(cache, r)
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
 
@@ -327,25 +291,12 @@ function evaluate_centroid_nonadiabatic_coupling!(cache::Abstract_QuantumModel_C
     return nothing
 end
 
-#= function evaluate_centroid_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T, 3}) where {T}
-    centroid_adiabatic_derivative = get_centroid_adiabatic_derivative(cache, r)
-    centroid_eigen = get_centroid_eigen(cache, r)
-    for I in eachindex(centroid_adiabatic_derivative)
-        @. cache.centroid_nonadiabatic_coupling[I] = evaluate_nonadiabatic_coupling(centroid_adiabatic_derivative[I], centroid_eigen.values)
-    end
-end =#
 
-function evaluate_inverse_difference_matrix!(out, eigenvalues)
-    @inbounds for i in eachindex(eigenvalues)
-        for j in eachindex(eigenvalues)
-            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j])
-        end
-        out[i,i] = zero(eltype(out))
-    end
-    return nothing
-end
+
+
 
 #RingPolymer specific functions
+
 function evaluate_V̄!(cache::RingPolymer_QuantumModel_Cache, r)
     potential = get_potential(cache, r)
     for i in 1:length(cache.V̄)
