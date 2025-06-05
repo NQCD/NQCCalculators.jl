@@ -91,7 +91,7 @@ end
         end =#
 
         #NQCCalculators.get_nonadiabatic_coupling(cache, r)
-        NQCCalculators.update_electronics!(cache, r)
+        NQCCalculators.update_cache!(cache, r)
 
         # Check the position fields are correct
         #=         
@@ -190,7 +190,7 @@ end
         =#
 
         #NQCCalculators.get_nonadiabatic_coupling(cache, r)
-        NQCCalculators.update_electronics!(cache, r)
+        NQCCalculators.update_cache!(cache, r)
 
         # Check the position fields are correct
         #=         
@@ -220,7 +220,7 @@ end
         end 
         =#
 
-        NQCCalculators.update_electronics!(cache, r)
+        NQCCalculators.update_cache!(cache, r)
 
         # Check the position fields are correct
         #=         
