@@ -26,29 +26,45 @@ const MAX_EIGEN_ALLOCATIONS = 60000
 end
 
 @testset "ClassicalModel_Cache" begin
-    model = NQCModels.Free(3)
+    model = NQCModels.Harmonic()
     cache = NQCCalculators.ClassicalModel_Cache(model, 5, Float64) 
-    r = rand(3, 5)
+    r = rand(1, 5)
 
-#=  
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
+    #Check that get_:quantities retrieves the wrong values
+    @test get_potential(cache, r) !== NQCModels.potential(model, r)
+    @test get_derivative(cache, r) !== NQCModels.derivative(model, r)
 
-    @test @allocated(NQCCalculators.get_potential(cache, r)) == 0
-    @test @allocated(NQCCalculators.get_derivative(cache, r)) == 0 
-=#
+    #Update entries in the Cache to the values pertaining to current position
+    NQCCalculators.update_cache!(cache, r)
+
+    # Check all the results
+    @test cache.potential ≈ NQCModels.potential(model, r)
+    @test cache.derivative ≈ NQCModels.derivative(model, r)
 end
 
 @testset "RingPolymer_ClassicalModel_Cache" begin
-    model = NQCModels.Free(3)
+    model = NQCModels.Harmonic()
     cache = NQCCalculators.RingPolymer_ClassicalModel_Cache(model, 5, 10, Float64) 
-    r = rand(3, 5, 10)
+    r = rand(1, 5, 10)
 
-#=     @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
+    #Check that get_:quantities retrieves the wrong values
+    @test get_potential(cache, r) !== NQCModels.potential(model, r)
+    @test get_derivative(cache, r) !== NQCModels.derivative(model, r)
+    @test get_centroid(cache, r) !== centroid
+    @test get_centroid_potential(cache, r) !== NQCModels.potential(model, centroid)
+    @test get_centroid_derivative(cache, r) !== NQCModels.derivative(model, centroid)
 
-    @test @allocated(NQCCalculators.get_potential(cache, r)) == 0
-    @test @allocated(NQCCalculators.get_derivative(cache, r)) == 0 =#
+    #Update entries in the Cache to the values pertaining to current position
+    NQCCalculators.update_cache!(cache, r)
+    centroid = RingPolymerArrays.get_centroid(r)
+
+    # Check all the results
+    @test cache.potential ≈ NQCModels.potential(model, r)
+    @test cache.derivative ≈ NQCModels.derivative(model, r)
+    @test cache.centroid ≈ centroid
+    @test cache.centroid_potential ≈ NQCModels.potential(model, centroid)
+    @test cache.centroid_derivative ≈ NQCModels.derivative(model, centroid)
+
 end
 
 @testset "QuantumModel_Cache" begin
@@ -60,7 +76,7 @@ end
     @testset "Potential evaluation" begin
         #check that the position is only changed in cache after get_potential() is called and not when potential() is called
         r = hcat(0.1)
-        true_potential = potential(model, r)
+        true_potential = NQCModels.potential(model, r)
 
         @test cache.potential != true_potential
         #@test getfield(cache, :potential).position != r
@@ -70,79 +86,65 @@ end
 
         @test cache.potential == true_potential
 
-        # Check that the position for potential is the only one that has been updated. 
-        #=
-         for name in quantities
-            if name !== :potential
-                @test getfield(cache, name).position != r
-            else
-                @test getfield(cache, name).position == r
-            end
-        end =#
+        # Check that the position for potential is the only one that has been updated.
+        @test get_derivative(cache, r)[1] !== NQCModels.derivative(model, r)
+        @test get_eigen(cache, r).values !== eigvals(NQCModels.potential(model, r))
+        @test abs.(get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
+        @test get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
     end
 
     @testset "Dependent evaluation" begin
+        #Change position value
         r = hcat(0.2)
 
-        # Check the position fields are different
-        #=         
-        for name in quantities
-            @test getfield(cache, name).position != r
-        end =#
+        #Check that get_:quantities retrieves the wrong values
+        @test get_potential(cache, r) !== NQCModels.potential(model, r)
+        @test get_derivative(cache, r)[1] !== NQCModels.derivative(model, r)
+        @test get_eigen(cache, r).values !== eigvals(NQCModels.potential(model, r))
+        @test abs.(get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
+        @test get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
 
-        #NQCCalculators.get_nonadiabatic_coupling(cache, r)
-        NQCCalculators.update_electronics!(cache, r)
-
-        # Check the position fields are correct
-        #=         
-        for name in quantities
-            @test getfield(cache, name).position == r
-        end =#
+        #Update entries in the Cache to the new values
+        NQCCalculators.update_cache!(cache, r)
 
         # Check all the results
-        @test cache.potential ≈ potential(model, r)
-        @test cache.derivative[1] ≈ derivative(model, r)
-        @test cache.eigen.values ≈ eigvals(potential(model, r))
-        @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(potential(model, r)))
+        @test cache.potential ≈ NQCModels.potential(model, r)
+        @test cache.derivative[1] ≈ NQCModels.derivative(model, r)
+        @test cache.eigen.values ≈ eigvals(NQCModels.potential(model, r))
+        @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen.vectors' * derivative(model, r) * cache.eigen.vectors
+            cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
         )
     end
-
-    #=     
+     
     @testset "Zero allocations" begin
-        @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_eigen!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0
+        @test @allocated(NQCCalculators.get_potential(cache, r)) == 0
+        @test @allocated(NQCCalculators.get_derivative(cache, r)) == 0
+        @test @allocated(NQCCalculators.get_eigen(cache, r)) == 0
+        @test @allocated(NQCCalculators.get_adiabatic_derivative(cache, r)) == 0
+        @test @allocated(NQCCalculators.get_nonadiabatic_coupling(cache, r)) == 0
     end 
-    =#
 
     @testset "Explict Bath Model" begin
         model = NQCModels.AndersonHolstein(NQCModels.ErpenbeckThoss(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
         cache = NQCCalculators.QuantumModel_Cache(model, 1, Float64)
         r = rand(1,1)
 
-        NQCCalculators.get_nonadiabatic_coupling(cache, r)
+        NQCCalculators.update_cache!(cache, r)
 
-        NQCCalculators.evaluate_potential!(cache, r)
-        NQCCalculators.evaluate_derivative!(cache, r)
-        NQCCalculators.evaluate_eigen!(cache, r)
-        NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
-        NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
-
-        #=         
-        @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
         eigen_allocations = @allocated(NQCCalculators.evaluate_eigen!(cache, r))
-        global allocs_LargeDiabatic = eigen_allocations
         @debug "QuantumModel_Cache: $(eigen_allocations) needed for eigenvalues"
         @test eigen_allocations < MAX_EIGEN_ALLOCATIONS
-        @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0 
-        =#
+
+        @test cache.potential ≈ NQCModels.potential(model, r)
+        @test cache.derivative[1] ≈ NQCModels.derivative(model, r)
+        @test cache.eigen.values ≈ eigvals(NQCModels.potential(model, r))
+        @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
+        @test isapprox(
+            cache.adiabatic_derivative[1],
+            cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
+        )
     end
 end
 
@@ -158,7 +160,7 @@ end
 
     @testset "Potential evaluation" begin
         cache = reset_cache()
-        true_potential = [potential(model, r[:,:,i]) for i=1:10]
+        true_potential = [NQCModels.potential(model, r[:,:,i]) for i=1:10]
 
         @test cache.potential != true_potential
         #@test getfield(cache, :potential).position != r
@@ -168,82 +170,50 @@ end
         @test cache.potential == true_potential
 
         # Check that the position for potential is the only one that has been updated. 
-        #=         
-        for name in standard_quantities
-            if name !== :potential
-                @test getfield(cache, name).position != r
-            else
-                @test getfield(cache, name).position == r
-            end
-        end 
-        =#
+        @test get_derivative(cache, r)[1] !== NQCModels.derivative(model, r)
+        @test get_eigen(cache, r).values !== eigvals(NQCModels.potential(model, r))
+        @test abs.(get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
+        @test get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
     end
 
     @testset "Dependent evaluation" begin
         cache = reset_cache()
 
-        # Reset the position fields
-        #=         
-        for name in standard_quantities
-            getfield(cache, name).position .= NaN
-        end 
-        =#
-
-        #NQCCalculators.get_nonadiabatic_coupling(cache, r)
-        NQCCalculators.update_electronics!(cache, r)
-
-        # Check the position fields are correct
-        #=         
-        for name in standard_quantities
-            @test getfield(cache, name).position == r
-        end 
-        =#
+        NQCCalculators.update_cache!(cache, r)
 
         # Check all the results
-        @test cache.potential ≈ [potential(model, r[:,:,i]) for i=1:10]
-        @test cache.derivative ≈ [derivative(model, hcat(r[k,j,i])) for k=1:1, j=1:1, i=1:10]
+        @test cache.potential ≈ [NQCModels.potential(model, r[:,:,i]) for i=1:10]
+        @test cache.derivative ≈ [NQCModels.derivative(model, hcat(r[k,j,i])) for k=1:1, j=1:1, i=1:10]
         @test [cache.eigen[i].values for i=1:10] ≈ eigvals.(cache.potential)
         @test [abs.(cache.eigen[i].vectors) for i=1:10] ≈ [abs.(eigvecs(cache.potential[i])) for i=1:10]
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen[1].vectors' * derivative(model, r[:,:,1]) * cache.eigen[1].vectors
+            cache.eigen[1].vectors' * NQCModels.derivative(model, r[:,:,1]) * cache.eigen[1].vectors
         )
     end
 
     @testset "Centroid dependent evaluation" begin
         cache = reset_cache()
         r_centroid = RingPolymerArrays.get_centroid(r)
-        # Check the position fields are different
-        #=         
-        for name in centroid_quantities
-            @test getfield(cache, name).position != r
-        end 
-        =#
 
-        NQCCalculators.update_electronics!(cache, r)
 
-        # Check the position fields are correct
-        #=         
-        for name in centroid_quantities
-            @test getfield(cache, name).position == r
-        end 
-        =#
+        NQCCalculators.update_cache!(cache, r)
 
         # Check all the results
-        @test cache.centroid_potential ≈ potential(model, r_centroid)
-        @test cache.centroid_derivative[1] ≈ derivative(model, r_centroid)
-        @test cache.centroid_eigen.values ≈ eigvals(potential(model, r_centroid))
-        @test abs.(cache.centroid_eigen.vectors) ≈ abs.(eigvecs(potential(model, r_centroid)))
+        @test cache.centroid_potential ≈ NQCModels.potential(model, r_centroid)
+        @test cache.centroid_derivative[1] ≈ NQCModels.derivative(model, r_centroid)
+        @test cache.centroid_eigen.values ≈ eigvals(NQCModels.potential(model, r_centroid))
+        @test abs.(cache.centroid_eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r_centroid)))
         @test isapprox(
             cache.centroid_adiabatic_derivative[1],
-            cache.centroid_eigen.vectors' * derivative(model, r_centroid) * cache.centroid_eigen.vectors
+            cache.centroid_eigen.vectors' * NQCModels.derivative(model, r_centroid) * cache.centroid_eigen.vectors
         )
     end
 
     @testset "Extra quantities" begin
         cache = reset_cache()
 
-        NQCCalculators.get_traceless_potential(cache, r)
+        NQCCalculators.evaluate_traceless_potential!(cache, r)
         NQCCalculators.get_traceless_derivative(cache, r)
         NQCCalculators.get_traceless_adiabatic_derivative(cache, r)
 

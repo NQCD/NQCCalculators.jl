@@ -296,23 +296,6 @@ end
 
 #RingPolymer specific functions
 
-function evaluate_V̄!(cache::RingPolymer_QuantumModel_Cache, r)
-    potential = get_potential(cache, r)
-    for i in 1:length(cache.V̄)
-        cache.V̄[i] = tr(potential[i]) / nstates(cache.model)
-    end
-    return nothing
-end
-
-function evaluate_traceless_potential!(cache::RingPolymer_QuantumModel_Cache, r)
-    n = nstates(cache.model)
-    potential = get_potential(cache, r)
-    V̄ = get_V̄(cache, r)
-    for I in eachindex(potential)
-        cache.traceless_potential[I] = Hermitian([i != j ? potential[I][j,i] : potential[I][j,i] - V̄[I] for j=1:n, i=1:n])
-    end
-    return nothing
-end
 
 function evaluate_centroid!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
     cache.centroid .= RingPolymerArrays.get_centroid(r)
@@ -330,34 +313,6 @@ function evaluate_centroid_potential!(cache::Abstract_QuantumModel_Cache, r::Abs
     return nothing
 end
 
-function evaluate_D̄!(cache::RingPolymer_QuantumModel_Cache, r)
-    derivative = get_derivative(cache, r)
-    for I in eachindex(derivative)
-        cache.D̄[I] = tr(derivative[I]) / nstates(cache.model)
-    end
-    return nothing
-end
-
-function evaluate_traceless_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
-    n = nstates(cache.model)
-    derivative = get_derivative(cache, r)
-    D̄ = get_D̄(cache, r)
-    for I in eachindex(derivative)
-        cache.traceless_derivative[I] = Hermitian([i != j ? derivative[I][j,i] : derivative[I][j,i] - D̄[I] for j=1:n, i=1:n])
-    end
-    return nothing
-end
-
-function evaluate_traceless_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r)
-    n = nstates(cache.model)
-    adiabatic_derivative = get_adiabatic_derivative(cache, r)
-    D̄ = get_D̄(cache, r)
-    for I in eachindex(D̄)
-        cache.traceless_adiabatic_derivative[I] = [i != j ? adiabatic_derivative[I][j,i] : adiabatic_derivative[I][j,i] - D̄[I] for j=1:n, i=1:n]
-    end
-    return nothing
-end
-
 function evaluate_centroid_derivative!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
     centroid = RingPolymerArrays.get_centroid(r)
     NQCModels.derivative!(cache.model, cache.centroid_derivative[1], centroid)
@@ -370,6 +325,86 @@ function evaluate_centroid_eigen!(cache::Abstract_QuantumModel_Cache, r::Abstrac
     correct_phase!(eig, cache.centroid_eigen.vectors)
     cache.centroid_eigen.values .= eig.values
     cache.centroid_eigen.vectors .= eig.vectors
+    return nothing
+end
+
+#evaluate tilde quantities
+
+function evaluate_V̄!(cache::RingPolymer_QuantumModel_Cache, r)
+    potential = get_potential(cache, r)
+    for i in 1:length(cache.V̄)
+        cache.V̄[i] = tr(potential[i]) / nstates(cache.model)
+    end
+    return nothing
+end
+
+function evaluate_D̄!(cache::RingPolymer_QuantumModel_Cache, r)
+    derivative = get_derivative(cache, r)
+    for I in eachindex(derivative)
+        cache.D̄[I] = tr(derivative[I]) / nstates(cache.model)
+    end
+    return nothing
+end
+
+#evaluate traceless quantities
+
+function evaluate_traceless_potential!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache)
+    potential = get_potential(cache, r)
+    V̄ = get_V̄(cache, r)
+    for I in eachindex(potential)
+        cache.traceless_potential[I] = potential[I] - V̄[I].*I(n)
+    end
+    return nothing
+end
+
+function evaluate_traceless_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    derivative = get_derivative(cache, r)
+    D̄ = get_D̄(cache, r)
+    for I in eachindex(derivative)
+        cache.traceless_derivative[I] = derivative[I][j,i] - D̄[I].*I(n)
+    end
+    return nothing
+end
+
+function evaluate_traceless_adiabatic_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    adiabatic_derivative = get_adiabatic_derivative(cache, r)
+    D̄ = get_D̄(cache, r)
+    for I in eachindex(D̄)
+        cache.traceless_adiabatic_derivative[I] = adiabatic_derivative[I][j,i] - D̄[I].*I(n)
+    end
+    return nothing
+end
+
+function evaluate_traceless_potential!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    potential = get_potential(cache, r)
+    V̄ = get_V̄(cache, r)
+    for I in eachindex(potential)
+        cache.traceless_potential[I] = potential[I] - V̄[I].*I(n)
+    end
+    return nothing
+end
+
+function evaluate_traceless_derivative!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    derivative = get_derivative(cache, r)
+    D̄ = get_D̄(cache, r)
+    for I in eachindex(derivative)
+        cache.traceless_derivative[I] = derivative[I][j,i] - D̄[I].*I(n)
+    end
+    return nothing
+end
+
+function evaluate_traceless_adiabatic_derivative!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    adiabatic_derivative = get_adiabatic_derivative(cache, r)
+    D̄ = get_D̄(cache, r)
+    for I in eachindex(D̄)
+        cache.traceless_adiabatic_derivative[I] = adiabatic_derivative[I][j,i] - D̄[I].*I(n)
+    end
     return nothing
 end
 
@@ -442,6 +477,13 @@ function update_cache!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T
     evaluate_adiabatic_derivative!(cache, r)
     evaluate_nonadiabatic_coupling!(cache, r)
 
+    evaluate_V̄!(cache, r)
+    evaluate_D̄!(cache, r)
+
+    evaluate_traceless_potential!(cache,r)
+    evaluate_traceless_derivative!(cache,r)
+    evaluate_traceless_adiabatic_derivative!(cache,r)
+
     update_centroid!(cache, r)
     return nothing
 end
@@ -453,6 +495,13 @@ function update_cache!(cache::RingPolymer_QuantumFrictionModel_Cache, r::Abstrac
     evaluate_adiabatic_derivative!(cache, r)
     evaluate_nonadiabatic_coupling!(cache, r)
     evaluate_friction!(cache, r)
+
+    evaluate_V̄!(cache, r)
+    evaluate_D̄!(cache, r)
+
+    evaluate_traceless_potential!(cache,r)
+    evaluate_traceless_derivative!(cache,r)
+    evaluate_traceless_adiabatic_derivative!(cache,r)
 
     update_centroid!(cache, r)
     return nothing
