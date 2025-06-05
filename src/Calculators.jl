@@ -63,12 +63,12 @@ end
 #Definitions of evaluate functions
 
 function evaluate_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
-    cache.potential .= hcat(NQCModels.potential(cache.model, r))
+    NQCModels.potential!(cache.model, cache.potential, r)
 end
 
 function evaluate_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
     @views @inbounds for i in beads(cache)
-        cache.potential[i] .= hcat(NQCModels.potential(cache.model, r[:,:,i]))
+        NQCModels.potential!(cache.model, cache.potential[i], r[:,:,i])
     end
     return nothing
 end
@@ -84,8 +84,8 @@ function evaluate_potential!(cache::Abstract_QuantumModel_Cache, r::AbstractArra
     return nothing
 end
 
-function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, R::AbstractMatrix)
-    NQCModels.derivative!(cache.model, cache.derivative, R::AbstractMatrix)
+function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
+    NQCModels.derivative!(cache.model, cache.derivative, r::AbstractMatrix)
 end
 
 function evaluate_derivative!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
