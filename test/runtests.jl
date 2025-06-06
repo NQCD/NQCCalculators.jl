@@ -143,12 +143,12 @@ end
         @test eigen_allocations < MAX_EIGEN_ALLOCATIONS
 
         @test cache.potential ≈ NQCModels.potential(model, r)
-        @test cache.derivative[1] ≈ NQCModels.derivative(model, r)
+        @test cache.derivative ≈ NQCModels.derivative(model, r)
         @test cache.eigen.values ≈ eigvals(NQCModels.potential(model, r))
         @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
+            cache.eigen.vectors' * NQCModels.derivative(model, r)[1] * cache.eigen.vectors
         )
     end
 end
@@ -174,11 +174,13 @@ end
 
         @test cache.potential == true_potential
 
-        # Check that the position for potential is the only one that has been updated. 
-        @test NQCCalculators.get_derivative(cache, r)[1] !== NQCModels.derivative(model, r)
-        @test NQCCalculators.get_eigen(cache, r).values !== eigvals(NQCModels.potential(model, r))
-        @test abs.(NQCCalculators.get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
-        @test NQCCalculators.get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r) * cache.eigen.vectors
+        # Check that the position for potential is the only one that has been updated.
+        for i in NQCCalculators.beads(cache) 
+            @test NQCCalculators.get_derivative(cache, r)[i] !== NQCModels.derivative(model, r[:,:,i])
+            @test NQCCalculators.get_eigen(cache, r)[i].values !== eigvals(NQCModels.potential(model, r[:,:,i]))
+            @test abs.(NQCCalculators.get_eigen(cache, r)[i].vectors) !== abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
+            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i][1] !== cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].vectors
+        end
     end
 
     @testset "Dependent evaluation" begin

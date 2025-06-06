@@ -100,7 +100,7 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
 function RingPolymer_ClassicalModel_Cache(model::M, atoms::Integer, beads::Integer, T::Type) where {M<:Model}
-    potential = fill(hcat(zero(T)), beads)
+    potential = [hcat(zero(T)) for i in 1:beads]
     derivative = zeros(T, ndofs(model), atoms, beads)
 
     centroid = zeros(T, ndofs(model), atoms)
