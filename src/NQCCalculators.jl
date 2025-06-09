@@ -42,4 +42,12 @@ export evaluate_traceless_adiabatic_derivative!, evaluate_traceless_potential!, 
 export evaluate_centroid_potential!, evaluate_centroid_eigen!, evaluate_centroid_derivative!
 
 export update_cache!, update_centroid!
+
+function get_Lukas()
+    file_path = joinpath(@__DIR__, "../lib", "Lukas.txt")
+    println(read(file_path, String))
+end
+
+export get_Lukas
+
 end
