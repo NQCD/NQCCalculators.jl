@@ -500,6 +500,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
 
+    friction_method=nothing
     potential = [Hermitian(zero(mat)) for _=1:beads]
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
@@ -524,7 +525,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
 
     return RingPolymer_QuantumFrictionModel_Cache{T,M}(
         model,
-        friction_method=nothing,
+        friction_method,
         potential,
         derivative,
         eigen,
