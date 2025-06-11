@@ -413,6 +413,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
 
+    friction_method = nothing
     potential = Hermitian(zero(mat))
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     eigen = Eigen(zero(vec), zero(mat) + I)
@@ -423,7 +424,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<
 
     return QuantumFrictionModel_Cache{T,M}(
         model,
-        friction_method=nothing,
+        friction_method,
         potential,
         derivative,
         eigen,
