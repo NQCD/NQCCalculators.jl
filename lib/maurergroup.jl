@@ -22,7 +22,7 @@ function bold_unicode(str)
 end
 
 function get_maurergroup()
-    weights = [0.25, 0.25, 0.25, 0.25]
+    weights = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
     folder_path = joinpath(@__DIR__, "../lib/maurergroup/")
     # Get list of all .txt files in the folder
     files = readdir(folder_path)
