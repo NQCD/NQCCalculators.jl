@@ -1,4 +1,5 @@
 using Random
+using StatsBase
 #using FileSystem
 
 function get_Lukas()
@@ -20,17 +21,16 @@ function bold_unicode(str)
     return bold_str
 end
 
-
 function get_maurergroup()
-    # Get list of all .txt files in the folder
+    weights = [0.25, 0.25, 0.25, 0.25]
     folder_path = joinpath(@__DIR__, "../lib/maurergroup/")
+    # Get list of all .txt files in the folder
     files = readdir(folder_path)
 
-    # Pick a random index
-    random_index = rand(1:length(files))
+    # Select a random index using the provided weights and get the corresponding file
 
-    # Get the corresponding file
-    selected_file = files[random_index]
+    selected_file = sample(files, Weights(weights))
+
     file_path = joinpath(folder_path, selected_file)
     # Read and print the contents
     name = splitext(selected_file)[1]
@@ -40,4 +40,4 @@ function get_maurergroup()
     println()
     println("Gotta catch them all! ☉")
 end
-⊚
+
