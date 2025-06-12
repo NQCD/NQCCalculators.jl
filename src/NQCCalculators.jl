@@ -43,11 +43,7 @@ export evaluate_centroid_potential!, evaluate_centroid_eigen!, evaluate_centroid
 
 export update_cache!, update_centroid!
 
-function get_Lukas()
-    file_path = joinpath(@__DIR__, "../lib", "Lukas.txt")
-    println(read(file_path, String))
-end
-
+include("..\\lib\\maurergroup.jl")
 export get_Lukas
 
 end
