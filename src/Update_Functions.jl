@@ -204,13 +204,11 @@ function update_centroid_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cac
     return nothing
 end
 
-
 #RingPolymer specific functions
 
-
-function update_centroid!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
+#= function update_centroid!(cache::Abstract_Cache, r::AbstractArray{T,3}) where {T}
     cache.centroid .= RingPolymerArrays.get_centroid(r)
-end
+end =#
 
 function update_centroid_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
     centroid = RingPolymerArrays.get_centroid(r)
@@ -417,7 +415,6 @@ function update_cache!(cache::RingPolymer_QuantumFrictionModel_Cache, r::Abstrac
     return nothing
 end
 
-
 """
 updates all model properties stored in the cache for the current centroid position `r_centroid`.
 # Properties that may be updated:
@@ -429,14 +426,14 @@ updates all model properties stored in the cache for the current centroid positi
 - Friction tensor 
 """
 function update_centroid!(cache::RingPolymer_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
-    update_centroid!(cache, r)
+    evaluate_centroid!(cache, r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     return nothing
 end
 
 function update_centroid!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
-    update_centroid!(cache, r)
+    evaluate_centroid!(cache, r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     update_centroid_friction!(cache, r)
@@ -444,7 +441,7 @@ function update_centroid!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::Ab
 end
 
 function update_centroid!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    update_centroid!(cache, r)
+    evaluate_centroid!(cache, r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     update_centroid_eigen!(cache, r)
@@ -454,7 +451,7 @@ function update_centroid!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArra
 end
 
 function update_centroid!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
-    update_centroid!(cache, r)
+    evaluate_centroid!(cache, r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     update_centroid_eigen!(cache, r)
