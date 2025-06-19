@@ -52,13 +52,6 @@ for quantity in quantities
     end
 end
 
-abstract type FrictionEvaluationMethod end
-
-struct WideBandExact{T} <: FrictionEvaluationMethod
-    ρ::T
-    β::T
-end
-
 include("Evaluate_Functions.jl")
 
 include("Update_Functions.jl")

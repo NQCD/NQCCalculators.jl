@@ -22,6 +22,11 @@ using NQCModels.ClassicalModels: ClassicalModel
 using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel
 using NQCModels.FrictionModels: ClassicalFrictionModel
 
+include("Friction_Evaluators.jl")
+export FrictionEvaluationMethod
+export WideBandExact, GaussianBroadening, OffDiagonalGaussianBroadening, DirectQuadrature
+export fill_friction_tensor!
+
 include("Caches.jl")
 export Abstract_Cache, Abstract_ClassicalModel_Cache
 export Abstract_QuantumModel_Cache, Abstract_CorrelatedQuantumModel_Cache
