@@ -90,12 +90,14 @@ function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T
     end
 end
 
+#= 
 function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
     @views for i in 1:length(eig.values)
         eig.vectors[:,i] .*= sign(LinearAlgebra.dot(eig.vectors[:,i], old_eigenvectors[:,i]))
     end
     return nothing
-end
+end 
+=#
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = get_potential(cache, r)
