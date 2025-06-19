@@ -249,7 +249,23 @@ function update_V̄!(cache::RingPolymer_QuantumModel_Cache, r)
     return nothing
 end
 
+function update_V̄!(cache::RingPolymer_QuantumFrictionModel_Cache, r)
+    potential = get_potential(cache, r)
+    for i in 1:length(cache.V̄)
+        cache.V̄[i] = tr(potential[i]) / nstates(cache.model)
+    end
+    return nothing
+end
+
 function update_D̄!(cache::RingPolymer_QuantumModel_Cache, r)
+    derivative = get_derivative(cache, r)
+    for I in eachindex(derivative)
+        cache.D̄[I] = tr(derivative[I]) / nstates(cache.model)
+    end
+    return nothing
+end
+
+function update_D̄!(cache::RingPolymer_QuantumFrictionModel_Cache, r)
     derivative = get_derivative(cache, r)
     for I in eachindex(derivative)
         cache.D̄[I] = tr(derivative[I]) / nstates(cache.model)
@@ -269,7 +285,27 @@ function update_traceless_potential!(cache::RingPolymer_QuantumModel_Cache, r::A
     return nothing
 end
 
+function update_traceless_potential!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    potential = get_potential(cache, r)
+    V̄ = get_V̄(cache, r)
+    for i in eachindex(potential)
+        cache.traceless_potential[i] = potential[i] - V̄[i].*I(n)
+    end
+    return nothing
+end
+
 function update_traceless_derivative!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    n = nstates(cache.model)
+    derivative = get_derivative(cache, r)
+    D̄ = get_D̄(cache, r)
+    for i in eachindex(derivative)
+        cache.traceless_derivative[i] = derivative[i] - D̄[i].*I(n)
+    end
+    return nothing
+end
+
+function update_traceless_derivative!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
     n = nstates(cache.model)
     derivative = get_derivative(cache, r)
     D̄ = get_D̄(cache, r)
@@ -285,26 +321,6 @@ function update_traceless_adiabatic_derivative!(cache::RingPolymer_QuantumModel_
     D̄ = get_D̄(cache, r)
     for i in eachindex(D̄)
         cache.traceless_adiabatic_derivative[i] = adiabatic_derivative[i] - D̄[i].*I(n)
-    end
-    return nothing
-end
-
-function update_traceless_potential!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
-    n = nstates(cache.model)
-    potential = get_potential(cache, r)
-    V̄ = get_V̄(cache, r)
-    for i in eachindex(potential)
-        cache.traceless_potential[i] = potential[i] - V̄[i].*I(n)
-    end
-    return nothing
-end
-
-function update_traceless_derivative!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
-    n = nstates(cache.model)
-    derivative = get_derivative(cache, r)
-    D̄ = get_D̄(cache, r)
-    for i in eachindex(derivative)
-        cache.traceless_derivative[i] = derivative[i] - D̄[i].*I(n)
     end
     return nothing
 end

@@ -275,7 +275,27 @@ function evaluate_V̄!(cache::RingPolymer_QuantumModel_Cache, r)
     return nothing
 end
 
+function evaluate_V̄!(cache::RingPolymer_QuantumFrictionModel_Cache, r)
+    evaluate_potential!(cache, r)
+    potential = get_potential(cache, r)
+
+    for i in 1:length(cache.V̄)
+        cache.V̄[i] = tr(potential[i]) / nstates(cache.model)
+    end
+    return nothing
+end
+
 function evaluate_D̄!(cache::RingPolymer_QuantumModel_Cache, r)
+    evaluate_derivative!(cache, r)
+    derivative = get_derivative(cache, r)
+
+    for I in eachindex(derivative)
+        cache.D̄[I] = tr(derivative[I]) / nstates(cache.model)
+    end
+    return nothing
+end
+
+function evaluate_D̄!(cache::RingPolymer_QuantumFrictionModel_Cache, r)
     evaluate_derivative!(cache, r)
     derivative = get_derivative(cache, r)
 
