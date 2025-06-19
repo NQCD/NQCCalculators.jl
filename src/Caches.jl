@@ -409,6 +409,7 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 and the number of atoms in the simulation.
 """
 function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
+    friction_method=nothing
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
@@ -423,7 +424,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<
 
     return QuantumFrictionModel_Cache{T,M}(
         model,
-        friction_method=nothing,
+        friction_method,
         potential,
         derivative,
         eigen,
@@ -495,6 +496,7 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
 function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, T::Type) where {M<:Model}
+    friction_method=nothing
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
@@ -523,7 +525,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
 
     return RingPolymer_QuantumFrictionModel_Cache{T,M}(
         model,
-        friction_method=nothing,
+        friction_method,
         potential,
         derivative,
         eigen,
