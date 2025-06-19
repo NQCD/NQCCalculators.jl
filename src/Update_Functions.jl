@@ -57,6 +57,7 @@ end
 
 function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     μ = NQCModels.fermilevel(cache.model)
+
     if cache.friction_method isa WideBandExact
         evaluate_potential!(cache, r)
         evaluate_derivative!(cache, r)
@@ -72,6 +73,7 @@ function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     else
         evaluate_adiabatic_derivative!(cache, r)
         evaluate_eigen!(cache, r)
+
         ∂H = get_adiabatic_derivative(cache, r)
         eigen = get_eigen(cache, r)
 
@@ -96,6 +98,7 @@ function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T
     else
         evaluate_adiabatic_derivative!(cache, r)
         evaluate_eigen!(cache, r)
+        
         ∂H = get_adiabatic_derivative(cache, r)
         eigen = get_eigen(cache, r)
 

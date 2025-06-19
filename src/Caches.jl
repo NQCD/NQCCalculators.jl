@@ -408,8 +408,8 @@ end
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice
 and the number of atoms in the simulation.
 """
-function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
-    friction_method=nothing
+function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type; friction_method) where {M<:Model}
+    friction_method=friction_method
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
@@ -495,8 +495,8 @@ end
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice, 
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
-function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, T::Type) where {M<:Model}
-    friction_method=nothing
+function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, T::Type; friction_method::FrictionEvaluationMethod) where {M<:Model}
+    friction_method=friction_method
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
@@ -590,10 +590,18 @@ function Create_Cache(model::QuantumModel, atoms::Integer, beads::Integer, t::Ty
     RingPolymer_QuantumModel_Cache(model, atoms, beads, t)
 end
 
+function Create_Cache(model::QuantumFrictionModel, atoms::Integer, t::Type{T}, friction_method::FrictionEvaluationMethod) where {T}
+    QuantumFrictionModel_Cache(model, atoms, t; friction_method=friction_method)
+end
+
+function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, t::Type{T}, friction_method::FrictionEvaluationMethod) where {T}
+    RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t; friction_method=friction_method)
+end
+
 function Create_Cache(model::QuantumFrictionModel, atoms::Integer, t::Type{T}) where {T}
-    QuantumFrictionModel_Cache(model, atoms, t)
+    QuantumFrictionModel_Cache(model, atoms, t; friction_method=DirectQuadrature{Float64}(1.0, 1.0))
 end
 
 function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
-    RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t)
+    RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t; friction_method=DirectQuadrature{Float64}(1.0, 1.0))
 end
