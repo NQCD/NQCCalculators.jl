@@ -55,6 +55,54 @@ function evaluate_friction!(cache::Abstract_ClassicalModel_Cache, R::AbstractArr
     return nothing
 end
 
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    μ = NQCModels.fermilevel(cache.model)
+    if cache.friction_method isa WideBandExact
+        evaluate_potential!(cache, r)
+        evaluate_derivative!(cache, r)
+
+        potential = get_potential(cache, r)
+        derivative = get_derivative(cache, r)
+
+        fill_friction_tensor!(cache.friction, cache.friction_method, potential, derivative, r, μ)
+
+    elseif cache.friction_method isa Nothing
+        cache.friction .= zero(cache.friction)
+
+    else
+        evaluate_adiabatic_derivative!(cache, r)
+        evaluate_eigen!(cache, r)
+        ∂H = get_adiabatic_derivative(cache, r)
+        eigen = get_eigen(cache, r)
+
+        fill_friction_tensor!(cache.friction, cache.friction_method, ∂H, eigen, r, μ)
+    end
+end
+
+function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    μ = NQCModels.fermilevel(cache.model)
+    if cache.friction_method isa WideBandExact
+        evaluate_potential!(cache, r)
+        evaluate_derivative!(cache, r)
+
+        potential = get_potential(cache, r)
+        derivative = get_derivative(cache, r)
+
+        fill_friction_tensor!(cache.friction, cache.friction_method, potential, derivative, r, μ)
+
+    elseif cache.friction_method isa Nothing
+        cache.friction .= zero(cache.friction)
+
+    else
+        evaluate_adiabatic_derivative!(cache, r)
+        evaluate_eigen!(cache, r)
+        ∂H = get_adiabatic_derivative(cache, r)
+        eigen = get_eigen(cache, r)
+
+        fill_friction_tensor!(cache.friction, cache.friction_method, ∂H, eigen, r, μ)
+    end
+end
+
 function evaluate_centroid_friction!(cache::Abstract_ClassicalModel_Cache, R::AbstractArray{T,3}) where {T}
     centroid = RingPolymerArrays.get_centroid(R)
     NQCModels.friction!(cache.model, cache.centroid_friction, centroid)
@@ -62,36 +110,26 @@ end
 
 function evaluate_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::AbstractArray{T,3}) where {T}
     centroid = RingPolymerArrays.get_centroid(R)
-    NQCModels.friction!(cache.model, cache.centroid_friction, centroid)
-end
-
-function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     μ = NQCModels.fermilevel(cache.model)
-    if cache.friction_method isa WideBandExact
-        potential = get_potential(cache, r)
-        derivative = get_derivative(cache, r)
-        fill_friction_tensor!(cache.friction, cache.friction_method, potential, derivative, r, μ)
-    elseif cache.friction_method isa Nothing
-        cache.friction .= zero(cache.friction)
-    else
-        ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
-        eigen = Calculators.get_eigen(sim.calculator, r)
-        fill_friction_tensor!(cache.friction, sim.method.friction_method, ∂H, eigen, r, μ)
-    end
-end
 
-function evaluate_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    μ = NQCModels.fermilevel(cache.model)
     if cache.friction_method isa WideBandExact
-        potential = get_potential(cache, r)
-        derivative = get_derivative(cache, r)
-        fill_friction_tensor!(cache.friction, sim.method.friction_method, potential, derivative, r, μ)
+        evaluate_centroid_potential!(cache, R)
+        evaluate_centroid_derivative!(cache, R)
+
+        potential = get_centroid_potential(cache, centroid)
+        derivative = get_centroid_derivative(cache, centroid)
+
+        fill_friction_tensor!(cache.centroid_friction, cache.friction_method, potential, derivative, centroid, μ)
+
     elseif cache.friction_method isa Nothing
-        cache.friction .= zero(cache.friction)
+        cache.centroid_friction .= zero(cache.centroid_friction)
     else
-        ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
-        eigen = Calculators.get_eigen(sim.calculator, r)
-        fill_friction_tensor!(cache.friction, cache.friction_method, ∂H, eigen, r, μ)
+        evaluate_centroid_adiabatic_derivative!(cache, R)
+        evaluate_centroid_eigen!(cache, R)
+        ∂H = get_centroid_adiabatic_derivative(cache, R)
+        eigen = get_centroid_eigen(cache, R)
+
+        fill_friction_tensor!(cache.centroid_friction, cache.friction_method, ∂H, eigen, centroid, μ)
     end
 end
 
