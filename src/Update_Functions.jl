@@ -60,6 +60,11 @@ function update_centroid_friction!(cache::Abstract_ClassicalModel_Cache, R::Abst
     NQCModels.friction!(cache.model, cache.centroid_friction, centroid)
 end
 
+function update_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::AbstractArray{T,3}) where {T}
+    centroid = RingPolymerArrays.get_centroid(R)
+    NQCModels.friction!(cache.model, cache.centroid_friction, centroid)
+end
+
 function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     μ = NQCModels.fermilevel(cache.model)
     if cache.friction_method isa Nothing
