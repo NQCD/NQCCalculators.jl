@@ -50,7 +50,6 @@ export evaluate_centroid_potential!, evaluate_centroid_eigen!, evaluate_centroid
 
 export update_cache!, update_centroid!
 
-include("..\\lib\\maurergroup.jl")
-export get_Lukas
+include(joinpath(@__DIR__, "../lib/", "maurergroup.jl"))
 
 end
