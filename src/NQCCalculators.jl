@@ -16,7 +16,7 @@ module NQCCalculators
 using LinearAlgebra
 using RingPolymerArrays
 using NQCBase
-using QuadGK: quadgk
+using QuadGK
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
