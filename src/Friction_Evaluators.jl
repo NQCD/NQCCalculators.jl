@@ -120,4 +120,4 @@ function ∂fermi(ϵ, μ, β)
 end
 
 gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
-gauss(x, friction_method::FrictionEvaluationMethod) = gauss(x, friction_method.σ)
+gauss(x, friction_method::FrictionEvaluationMethod) = exp(-0.5 * x^2 / friction_method.σ^2) / (friction_method.σ*sqrt(2π))
