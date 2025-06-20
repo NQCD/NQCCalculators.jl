@@ -16,11 +16,18 @@ module NQCCalculators
 using LinearAlgebra
 using RingPolymerArrays
 using NQCBase
+using QuadGK: quadgk
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
 using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel
 using NQCModels.FrictionModels: ClassicalFrictionModel
+
+include("Friction_Evaluators.jl")
+export FrictionEvaluationMethod
+export WideBandExact, GaussianBroadening, OffDiagonalGaussianBroadening, DirectQuadrature
+export fill_friction_tensor!
+export fermi, ∂fermi, gauss
 
 include("Caches.jl")
 export Abstract_Cache, Abstract_ClassicalModel_Cache
@@ -42,4 +49,8 @@ export evaluate_traceless_adiabatic_derivative!, evaluate_traceless_potential!, 
 export evaluate_centroid_potential!, evaluate_centroid_eigen!, evaluate_centroid_derivative!
 
 export update_cache!, update_centroid!
+
+include("..\\lib\\maurergroup.jl")
+export get_Lukas
+
 end

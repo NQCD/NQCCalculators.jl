@@ -289,7 +289,21 @@ end
     NQCCalculators.evaluate_friction!(cache, r)
 end
 
-@testset "RingPolymer_Friction_Cache" begin
+@testset "RingPolymer_ClassicalFrictionModel_Cache" begin
+    model = CompositeFrictionModel(Free(), RandomFriction(1))
+    cache = NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache(model, 1, 10, Float64)
+    r = rand(1,1,10)
+
+    NQCCalculators.get_potential(cache, r)
+    NQCCalculators.get_derivative(cache, r)
+    NQCCalculators.get_friction(cache, r)
+
+    NQCCalculators.evaluate_potential!(cache, r)
+    NQCCalculators.evaluate_derivative!(cache, r)
+    NQCCalculators.evaluate_friction!(cache, r)
+end
+
+@testset "RingPolymer_QuantumFrictionModel_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
     cache = NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache(model, 1, 10, Float64)
     r = rand(1,1,10)
