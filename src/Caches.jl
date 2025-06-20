@@ -392,7 +392,7 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     model::M
-    friction_method::Any
+    friction_method::Union{FrictionEvaluationMethod, Nothing}
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
@@ -409,12 +409,10 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 and the number of atoms in the simulation.
 """
 function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type; friction_method::Union{FrictionEvaluationMethod, Nothing}) where {M<:Model}
-    friction_method=friction_method
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
 
-    friction_method = nothing
     potential = Hermitian(zero(mat))
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     eigen = Eigen(zero(vec), zero(mat) + I)
@@ -422,6 +420,10 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type; friction_
     nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
     friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
     tmp_mat = zero(mat)
+
+    if friction_method isa Nothing
+        @warn "No friction evaluation algorithm has been specified, the friction tensor will be empty"
+    end
 
     return QuantumFrictionModel_Cache{T,M}(
         model,
@@ -466,7 +468,7 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     model::M
-    friction_method::Any
+    friction_method::Union{FrictionEvaluationMethod, Nothing}
     potential::Vector{Hermitian{T,Matrix{T}}}
     derivative::Array{Hermitian{T,Matrix{T}},3}
     eigen::Vector{LinearAlgebra.Eigen{T,T,Matrix{T}, Vector{T}}}
@@ -497,12 +499,10 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
 function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, T::Type; friction_method::Union{FrictionEvaluationMethod, Nothing}) where {M<:Model}
-    friction_method=friction_method
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
 
-    friction_method=nothing
     potential = [Hermitian(zero(mat)) for _=1:beads]
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
@@ -524,6 +524,10 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
     centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
     centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
     centroid_friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
+
+    if friction_method isa Nothing
+        @warn "No friction evaluation algorithm has been specified, the friction tensor will be empty"
+    end
 
     return RingPolymer_QuantumFrictionModel_Cache{T,M}(
         model,
@@ -592,15 +596,15 @@ function Create_Cache(model::QuantumModel, atoms::Integer, beads::Integer, t::Ty
     RingPolymer_QuantumModel_Cache(model, atoms, beads, t)
 end
 
-function Create_Cache(model::QuantumFrictionModel, atoms::Integer, t::Type{T}; friction_method::FrictionEvaluationMethod) where {T}
+function Create_Cache(model::QuantumFrictionModel, atoms::Integer, t::Type{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
     QuantumFrictionModel_Cache(model, atoms, t; friction_method=friction_method)
 end
 
-function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, t::Type{T}; friction_method::FrictionEvaluationMethod) where {T}
+function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, t::Type{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
     RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t; friction_method=friction_method)
 end
 
-function Create_Cache(model::QuantumFrictionModel, atoms::Integer, t::Type{T}) where {T}
+#= function Create_Cache(model::QuantumFrictionModel, atoms::Integer, t::Type{T}) where {T}
     @warn "No friction evaluation algorithm has been specified, the friction tensor will be empty"
     QuantumFrictionModel_Cache(model, atoms, t; friction_method=nothing)
 end
@@ -609,3 +613,4 @@ function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Intege
     @warn "No friction evaluation algorithm has been specified, the friction tensor will be empty"
     RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t; friction_method=nothing)
 end
+ =#
