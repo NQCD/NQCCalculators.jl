@@ -87,7 +87,7 @@ end
         #@test getfield(cache, :potential).position != r
 
         #NQCCalculators.get_potential(cache, r)
-        NQCCalculators.evaluate_potential!(cache, r)
+        NQCCalculators.update_potential!(cache, r)
 
         @test cache.potential == true_potential
 
@@ -138,10 +138,6 @@ end
 
         NQCCalculators.update_cache!(cache, r)
 
-        eigen_allocations = @allocated(NQCCalculators.evaluate_eigen!(cache, r))
-        @debug "QuantumModel_Cache: $(eigen_allocations) needed for eigenvalues"
-        @test eigen_allocations < MAX_EIGEN_ALLOCATIONS
-
         @test cache.potential ≈ NQCModels.potential(model, r)
         @test cache.derivative ≈ NQCModels.derivative(model, r)
         @test cache.eigen.values ≈ eigvals(NQCModels.potential(model, r))
@@ -170,16 +166,30 @@ end
         @test cache.potential != true_potential
         #@test getfield(cache, :potential).position != r
 
-        NQCCalculators.evaluate_potential!(cache, r)
+        NQCCalculators.evaluate_potential(cache, r)
+
+        @test cache.potential != true_potential
+
+        NQCCalculators.update_potential!(cache, r)
 
         @test cache.potential == true_potential
 
-        # Check that the position for potential is the only one that has been updated.
+        # Check that the potential is the only one that has been updated.
         for i in NQCCalculators.beads(cache) 
             @test NQCCalculators.get_derivative(cache, r)[i] !== NQCModels.derivative(model, r[:,:,i])
             @test NQCCalculators.get_eigen(cache, r)[i].values !== eigvals(NQCModels.potential(model, r[:,:,i]))
             @test abs.(NQCCalculators.get_eigen(cache, r)[i].vectors) !== abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
-            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i][1] !== cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].vectors
+            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] !== cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i]) * cache.eigen[i].vectors
+        end
+
+        NQCCalculators.update_cache!(cache, r)
+
+        # Check that everything has been updated
+        for i in NQCCalculators.beads(cache) 
+            @test NQCCalculators.get_derivative(cache, r)[i] == NQCModels.derivative(model, r[:,:,i])
+            @test NQCCalculators.get_eigen(cache, r)[i].values == eigvals(NQCModels.potential(model, r[:,:,i]))
+            @test abs.(NQCCalculators.get_eigen(cache, r)[i].vectors) == abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
+            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] == cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i]) * cache.eigen[i].vectors
         end
     end
 
@@ -220,7 +230,7 @@ end
     @testset "Extra quantities" begin
         cache = reset_cache()
 
-        NQCCalculators.evaluate_traceless_potential!(cache, r)
+        NQCCalculators.update_cache!(cache, r)
         NQCCalculators.get_traceless_derivative(cache, r)
         NQCCalculators.get_traceless_adiabatic_derivative(cache, r)
 
@@ -236,24 +246,24 @@ end
         cache = reset_cache()
 
         # Call all functions to ensure they have been compiled
-        NQCCalculators.evaluate_potential!(cache, r)
-        NQCCalculators.evaluate_derivative!(cache, r)
-        NQCCalculators.evaluate_eigen!(cache, r)
-        NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
-        NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
+        NQCCalculators.evaluate_potential(cache, r)
+        NQCCalculators.evaluate_derivative(cache, r)
+        NQCCalculators.evaluate_eigen(cache, r)
+        NQCCalculators.evaluate_adiabatic_derivative(cache, r)
+        NQCCalculators.evaluate_nonadiabatic_coupling(cache, r)
 
-        NQCCalculators.evaluate_traceless_potential!(cache, r)
-        NQCCalculators.evaluate_V̄!(cache, r)
-        NQCCalculators.evaluate_traceless_derivative!(cache, r)
-        NQCCalculators.evaluate_D̄!(cache, r)
-        NQCCalculators.evaluate_traceless_adiabatic_derivative!(cache, r)
+        NQCCalculators.evaluate_traceless_potential(cache, r)
+        NQCCalculators.evaluate_V̄(cache, r)
+        NQCCalculators.evaluate_traceless_derivative(cache, r)
+        NQCCalculators.evaluate_D̄(cache, r)
+        NQCCalculators.evaluate_traceless_adiabatic_derivative(cache, r)
 
-        NQCCalculators.evaluate_centroid!(cache, r)
-        NQCCalculators.evaluate_centroid_potential!(cache, r)
-        NQCCalculators.evaluate_centroid_derivative!(cache, r)
-        NQCCalculators.evaluate_centroid_eigen!(cache, r)
-        NQCCalculators.evaluate_centroid_adiabatic_derivative!(cache, r)
-        NQCCalculators.evaluate_centroid_nonadiabatic_coupling!(cache, r)
+        NQCCalculators.evaluate_centroid(cache, r)
+        NQCCalculators.evaluate_centroid_potential(cache, r)
+        NQCCalculators.evaluate_centroid_derivative(cache, r)
+        NQCCalculators.evaluate_centroid_eigen(cache, r)
+        NQCCalculators.evaluate_centroid_adiabatic_derivative(cache, r)
+        NQCCalculators.evaluate_centroid_nonadiabatic_coupling(cache, r)
 
         cache = reset_cache()
     end
@@ -264,14 +274,13 @@ end
         cache = NQCCalculators.RingPolymer_QuantumModel_Cache(model, 1, 10, Float64) 
         r = rand(1, 1, 10)
 
-        NQCCalculators.get_nonadiabatic_coupling(cache, r)
-        NQCCalculators.get_centroid_nonadiabatic_coupling(cache, r)
+        NQCCalculators.update_cache!(cache, r)
 
-        NQCCalculators.evaluate_potential!(cache, r)
-        NQCCalculators.evaluate_derivative!(cache, r)
-        NQCCalculators.evaluate_eigen!(cache, r)
-        NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
-        NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
+        NQCCalculators.evaluate_potential(cache, r)
+        NQCCalculators.evaluate_derivative(cache, r)
+        NQCCalculators.evaluate_eigen(cache, r)
+        NQCCalculators.evaluate_adiabatic_derivative(cache, r)
+        NQCCalculators.evaluate_nonadiabatic_coupling(cache, r)
     end
 end
 
@@ -284,9 +293,9 @@ end
     NQCCalculators.get_derivative(cache, r)
     NQCCalculators.get_friction(cache, r)
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_friction!(cache, r)
+    NQCCalculators.evaluate_potential(cache, r)
+    NQCCalculators.evaluate_derivative(cache, r)
+    NQCCalculators.evaluate_friction(cache, r)
 end
 
 @testset "RingPolymer_ClassicalFrictionModel_Cache" begin
@@ -298,9 +307,9 @@ end
     NQCCalculators.get_derivative(cache, r)
     NQCCalculators.get_friction(cache, r)
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_friction!(cache, r)
+    NQCCalculators.evaluate_potential(cache, r)
+    NQCCalculators.evaluate_derivative(cache, r)
+    NQCCalculators.evaluate_friction(cache, r)
 end
 
 @testset "RingPolymer_QuantumFrictionModel_Cache" begin
@@ -312,7 +321,7 @@ end
     NQCCalculators.get_derivative(cache, r)
     NQCCalculators.get_friction(cache, r)
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_friction!(cache, r)
+    NQCCalculators.evaluate_potential(cache, r)
+    NQCCalculators.evaluate_derivative(cache, r)
+    NQCCalculators.evaluate_friction(cache, r)
 end

@@ -59,9 +59,6 @@ function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     μ = NQCModels.fermilevel(cache.model)
 
     if cache.friction_method isa WideBandExact
-        evaluate_potential!(cache, r)
-        evaluate_derivative!(cache, r)
-
         potential = get_potential(cache, r)
         derivative = get_derivative(cache, r)
 
@@ -71,9 +68,6 @@ function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
         cache.friction .= zero(cache.friction)
 
     else
-        evaluate_adiabatic_derivative!(cache, r)
-        evaluate_eigen!(cache, r)
-
         ∂H = get_adiabatic_derivative(cache, r)
         eigen = get_eigen(cache, r)
 
@@ -84,9 +78,6 @@ end
 function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     μ = NQCModels.fermilevel(cache.model)
     if cache.friction_method isa WideBandExact
-        evaluate_potential!(cache, r)
-        evaluate_derivative!(cache, r)
-
         potential = get_potential(cache, r)
         derivative = get_derivative(cache, r)
 
@@ -96,9 +87,6 @@ function update_friction!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T
         cache.friction .= zero(cache.friction)
 
     else
-        evaluate_adiabatic_derivative!(cache, r)
-        evaluate_eigen!(cache, r)
-        
         ∂H = get_adiabatic_derivative(cache, r)
         eigen = get_eigen(cache, r)
 
@@ -116,9 +104,6 @@ function update_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::Abstra
     μ = NQCModels.fermilevel(cache.model)
 
     if cache.friction_method isa WideBandExact
-        evaluate_centroid_potential!(cache, R)
-        evaluate_centroid_derivative!(cache, R)
-
         potential = get_centroid_potential(cache, centroid)
         derivative = get_centroid_derivative(cache, centroid)
 
@@ -127,23 +112,12 @@ function update_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::Abstra
     elseif cache.friction_method isa Nothing
         cache.centroid_friction .= zero(cache.centroid_friction)
     else
-        evaluate_centroid_adiabatic_derivative!(cache, R)
-        evaluate_centroid_eigen!(cache, R)
         ∂H = get_centroid_adiabatic_derivative(cache, R)
         eigen = get_centroid_eigen(cache, R)
 
         fill_friction_tensor!(cache.centroid_friction, cache.friction_method, ∂H, eigen, centroid, μ)
     end
 end
-
-#= 
-function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
-    @views for i in 1:length(eig.values)
-        eig.vectors[:,i] .*= sign(LinearAlgebra.dot(eig.vectors[:,i], old_eigenvectors[:,i]))
-    end
-    return nothing
-end 
-=#
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = get_potential(cache, r)
@@ -168,6 +142,7 @@ end
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
+
     for I in eachindex(diabatic_derivative)
         cache.adiabatic_derivative[I] .= U' * diabatic_derivative[I] * U
     end
@@ -177,6 +152,7 @@ end
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     derivative = get_derivative(cache, r)
     eigen = get_eigen(cache, r)
+
     for i in axes(derivative, 3) # Beads
         for j in axes(derivative, 2) # Atoms
             for k in axes(derivative, 1) # DoFs
@@ -490,14 +466,14 @@ updates all model properties stored in the cache for the current centroid positi
 - Friction tensor 
 """
 function update_centroid!(cache::RingPolymer_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
-    evaluate_centroid!(cache, r)
+    cache.centroid .= RingPolymerArrays.get_centroid(r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     return nothing
 end
 
 function update_centroid!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
-    evaluate_centroid!(cache, r)
+    cache.centroid .= RingPolymerArrays.get_centroid(r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     update_centroid_friction!(cache, r)
@@ -505,7 +481,7 @@ function update_centroid!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::Ab
 end
 
 function update_centroid!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    evaluate_centroid!(cache, r)
+    cache.centroid .= RingPolymerArrays.get_centroid(r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     update_centroid_eigen!(cache, r)
@@ -515,7 +491,7 @@ function update_centroid!(cache::RingPolymer_QuantumModel_Cache, r::AbstractArra
 end
 
 function update_centroid!(cache::RingPolymer_QuantumFrictionModel_Cache, r::AbstractArray{T,3}) where {T}
-    evaluate_centroid!(cache, r)
+    cache.centroid .= RingPolymerArrays.get_centroid(r)
     update_centroid_potential!(cache, r)
     update_centroid_derivative!(cache, r)
     update_centroid_eigen!(cache, r)
