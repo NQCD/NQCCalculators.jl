@@ -45,7 +45,7 @@ function get_maurergroup()
         0.009589664e-2, # Shiny Dylan
         0.095896637e-2, # Shiny Henry Snowden
         0.009589664e-2, # Shiny Henry Thake
-        0.00038397, #Shiny James Gardner
+        0.038397e-2, #Shiny James Gardner
         0.057537982e-2, # Shiny Lukas
         0.134255292e-2, # Shiny Nils
         0.100691469e-2, # Shiny Reini

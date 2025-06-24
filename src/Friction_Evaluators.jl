@@ -28,7 +28,7 @@ end
 Λ is a friction tensor that is populated by the function using the friction evaluation method passed into the function.
 ∂H, eigen, r, μ are variables used by the friction method to evaluate Λ.
 """
-function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, ∂H, eigen, r, μ)
+function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, eigen, ∂H, r, μ)
     for I in eachindex(r)
         for J in eachindex(r)
             Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.values, μ, friction_method.β)
