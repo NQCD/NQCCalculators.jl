@@ -1,7 +1,7 @@
 name = "NQCCalculators"
 uuid = "ddd1f41d-9621-41e2-91a4-6b87cc8989f3"
 authors = ["Ash Baldwin <Ash.Baldwin@warwick.ac.uk> and contributors"]
-version = "1.0.3"
+version = "1.0.4"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -14,7 +14,6 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-LinearAlgebra = "1.11.0"
 NQCBase = "0.5"
 NQCModels = "0.10"
 QuadGK = "2.11.2"
