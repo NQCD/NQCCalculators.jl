@@ -124,6 +124,9 @@ end
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = get_potential(cache, r)
+    if any(isnan.(potential)) || any(isinf.(potential))
+        @info "potential evaluated weirdly for" r = r potential = potential
+    end
     eig = LinearAlgebra.eigen(potential)
     correct_phase!(eig, cache.eigen.vectors)
     cache.eigen.values .= eig.values
@@ -178,9 +181,9 @@ end
 function update_inverse_difference_matrix!(out, eigenvalues)
     @inbounds for i in eachindex(eigenvalues)
         for j in eachindex(eigenvalues)
-            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j])
+            # Checking if the eigenvalues are different, otherwise set them to 0. Blame Henry for this!
+            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j]) .* (eigenvalues[i] .!= eigenvalues[j]) 
         end
-        out[i,i] = zero(eltype(out))
     end
     return nothing
 end
