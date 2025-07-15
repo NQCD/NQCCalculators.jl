@@ -20,7 +20,7 @@ using QuadGK
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
-using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel
+using NQCModels.QuantumModels: QuantumModel, QuantumFrictionModel, AndersonHolstein
 using NQCModels.FrictionModels: ClassicalFrictionModel
 
 include("Friction_Evaluators.jl")

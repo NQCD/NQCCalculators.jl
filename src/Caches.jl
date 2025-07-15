@@ -596,7 +596,8 @@ function Create_Cache(model::QuantumModel, atoms::Integer, beads::Integer, t::Ty
     RingPolymer_QuantumModel_Cache(model, atoms, beads, t)
 end
 
-function Create_Cache(model::QuantumModel, atoms::Integer, t::Type{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
+# specific multiple dispatch for AndersonHolstein to work with DiabaticMDEF
+function Create_Cache(model::AndersonHolstein, atoms::Integer, t::Type{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
     QuantumFrictionModel_Cache(model, atoms, t; friction_method=friction_method)
 end
 
