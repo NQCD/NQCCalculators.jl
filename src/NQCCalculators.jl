@@ -14,6 +14,7 @@ and methods needed to evaluate the quantities for each bead.
 module NQCCalculators
 
 using LinearAlgebra
+using LinearAlgebra.LAPACK
 using RingPolymerArrays
 using NQCBase
 using QuadGK
