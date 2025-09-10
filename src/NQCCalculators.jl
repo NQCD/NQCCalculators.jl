@@ -58,6 +58,4 @@ export update_traceless_adiabatic_derivative!, update_traceless_potential!, upda
 export update_centroid_potential!, update_centroid_eigen!, update_centroid_derivative!
 export update_cache!, update_centroid!
 
-include(joinpath(@__DIR__, "../lib/", "maurergroup.jl"))
-
 end
