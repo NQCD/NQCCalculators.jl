@@ -33,9 +33,9 @@ end
     #Check that get_:quantities retrieves the wrong values
     @test NQCCalculators.get_potential(cache, r)[1] !== NQCModels.potential(model, r)
     @test NQCCalculators.get_derivative(cache, r) !== NQCModels.derivative(model, r)
-	@debug println(cache)
+	@debug "Cache info" cache
     NQCCalculators.update_cache!(cache, r)
-	@debug println(cache)
+	@debug "Cache info" cache
     # Check all the results
     
     @test cache.potential[1] ≈ NQCModels.potential(model, r)
@@ -57,10 +57,10 @@ end
     @test NQCCalculators.get_centroid_potential(cache, r) !== hcat(NQCModels.potential(model, centroid))
     @test NQCCalculators.get_centroid_derivative(cache, r) !== NQCModels.derivative(model, centroid)
     
-	@debug println(cache)
+	@debug "Cache info" cache
     #Update entries in the Cache to the values pertaining to current position
     NQCCalculators.update_cache!(cache, r)
-	@debug println(cache)
+	@debug "Cache info" cache
 
     # Check all the results
     for I in NQCCalculators.beads(cache)
@@ -109,10 +109,10 @@ end
         @test abs.(NQCCalculators.get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
         @test NQCCalculators.get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r)[1] * cache.eigen.vectors
 
-		@debug println(cache)
+		@debug "Cache info" cache
         #Update entries in the Cache to the new values
         NQCCalculators.update_cache!(cache, r)
-		@debug println(cache)
+		@debug "Cache info" cache
 		
         # Check all the results
         @test cache.potential ≈ NQCModels.potential(model, r)
@@ -183,9 +183,9 @@ end
             @test abs.(NQCCalculators.get_eigen(cache, r)[i].vectors) !== abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
             @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] !== cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].vectors
         end
-		@debug println(cache)
+		@debug "Cache info" cache
         NQCCalculators.update_cache!(cache, r)
-		@debug println(cache)
+		@debug "Cache info" cache
         # Check that everything has been updated
         for i in NQCCalculators.beads(cache) 
             @test NQCCalculators.get_derivative(cache, r)[i] == NQCModels.derivative(model, r[:,:,i])[1]
@@ -275,9 +275,9 @@ end
         model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
         cache = NQCCalculators.RingPolymer_QuantumModel_Cache(model, 1, 10, Float64) 
         r = rand(1, 1, 10)
-		@debug println(cache)
+		@debug "Cache info" cache
         NQCCalculators.update_cache!(cache, r)
-		@debug println(cache)
+		@debug "Cache info" cache
         NQCCalculators.evaluate_potential(cache, r)
         NQCCalculators.evaluate_derivative(cache, r)
         NQCCalculators.evaluate_eigen(cache, r)
@@ -290,7 +290,7 @@ end
     model = CompositeFrictionModel(Free(), RandomFriction(1))
     cache = NQCCalculators.ClassicalFrictionModel_Cache(model, 1, Float64) 
     r = rand(1,1)
-	@debug println(cache)
+	@debug "Cache info" cache
     NQCCalculators.get_potential(cache, r)
     NQCCalculators.get_derivative(cache, r)
     NQCCalculators.get_friction(cache, r)
@@ -298,14 +298,14 @@ end
     NQCCalculators.evaluate_potential(cache, r)
     NQCCalculators.evaluate_derivative(cache, r)
     NQCCalculators.evaluate_friction(cache, r)
-	@debug println(cache)
+	@debug "Cache info" cache
 end
 
 @testset "RingPolymer_ClassicalFrictionModel_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
     cache = NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache(model, 1, 10, Float64)
     r = rand(1,1,10)
-	@debug println(cache)
+	@debug "Cache info" cache
     NQCCalculators.get_potential(cache, r)
     NQCCalculators.get_derivative(cache, r)
     NQCCalculators.get_friction(cache, r)
@@ -313,14 +313,14 @@ end
     NQCCalculators.evaluate_potential(cache, r)
     NQCCalculators.evaluate_derivative(cache, r)
     NQCCalculators.evaluate_friction(cache, r)
-	@debug println(cache)
+	@debug "Cache info" cache
 end
 
 @testset "RingPolymer_QuantumFrictionModel_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
     cache = NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache(model, 1, 10, Float64)
     r = rand(1,1,10)
-	@debug println(cache)
+	@debug "Cache info" cache
     NQCCalculators.get_potential(cache, r)
     NQCCalculators.get_derivative(cache, r)
     NQCCalculators.get_friction(cache, r)
@@ -328,5 +328,5 @@ end
     NQCCalculators.evaluate_potential(cache, r)
     NQCCalculators.evaluate_derivative(cache, r)
     NQCCalculators.evaluate_friction(cache, r)
-	@debug println(cache)
+	@debug "Cache info" cache
 end
