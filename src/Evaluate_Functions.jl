@@ -152,6 +152,13 @@ function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatr
     return nothing
 end
 
+function correct_phase!(eig::AbstractMatrix, old_eigenvectors::AbstractMatrix)
+    @views for i in 1:size(eig,2)
+        eig[:,i] .*= sign(LinearAlgebra.dot(eig[:,i], old_eigenvectors[:,i]))
+    end
+    return nothing
+end
+
 function evaluate_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = evaluate_potential(cache, r)
 

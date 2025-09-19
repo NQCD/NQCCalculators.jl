@@ -123,14 +123,13 @@ function update_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::Abstra
 end
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    potential = get_potential(cache, r)
-    if any(isnan.(potential)) || any(isinf.(potential))
-        @info "potential evaluated weirdly for" r = r potential = potential
-    end
-    eig = LinearAlgebra.eigen(potential)
-    correct_phase!(eig, cache.eigen.vectors)
-    cache.eigen.values .= eig.values
-    cache.eigen.vectors .= eig.vectors
+
+    cache.tmp_mat .= cache.potential.data    # copy potential into eigenvector storage
+    vals, _ = LAPACK.syev!('V', 'U', cache.tmp_mat)
+    cache.eigen.values .= vals
+    correct_phase!(cache.tmp_mat, cache.eigen.vectors)
+    cache.eigen.vectors .= cache.tmp_mat
+    return nothing
 end
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
@@ -145,12 +144,26 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
     return nothing
 end
 
-function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+#= function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
 
     for I in eachindex(diabatic_derivative)
         cache.adiabatic_derivative[I] .= U' * diabatic_derivative[I] * U
+    end
+    return nothing
+end =#
+
+function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    U = get_eigen(cache, r).vectors
+    diabatic_derivative = get_derivative(cache, r)
+
+    for I in eachindex(diabatic_derivative)
+        # Step 1: tmp = U' * diabatic_derivative[I]
+        mul!(cache.tmp_mat, U', diabatic_derivative[I]) 
+
+        # Step 2: cache.adiabatic_derivative[I] = tmp * U
+        mul!(cache.adiabatic_derivative[I], cache.tmp_mat, U)
     end
     return nothing
 end

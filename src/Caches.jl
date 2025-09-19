@@ -33,7 +33,14 @@ interacting electrons and therefore cannot be solved with exact diagonalisation.
 """
 abstract type Abstract_CorrelatedQuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T, M} end #type didn't formerly exist
 
-
+function Base.show(io::Core.IO, cache::Abstract_Cache)
+	printstyled(io, string(typeof(cache))*"\n"; bold=true)
+	for field in fieldnames(typeof(cache))
+		printstyled(io, "$(field):\n"; underline=true)
+		Base.show(io, getfield(cache, field))
+		print(io, "\n")
+	end
+end
 
 #Definitions for the concrete Subtypes of the above Cache Types
 """

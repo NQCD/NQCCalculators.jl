@@ -14,6 +14,7 @@ and methods needed to evaluate the quantities for each bead.
 module NQCCalculators
 
 using LinearAlgebra
+using LinearAlgebra.LAPACK
 using RingPolymerArrays
 using NQCBase
 using QuadGK
@@ -56,7 +57,5 @@ export update_centroid_potential!, update_centroid!, update_centroid_nonadiabati
 export update_traceless_adiabatic_derivative!, update_traceless_potential!, update_traceless_derivative!,  update_D̄!, update_V̄!
 export update_centroid_potential!, update_centroid_eigen!, update_centroid_derivative!
 export update_cache!, update_centroid!
-
-include(joinpath(@__DIR__, "../lib/", "maurergroup.jl"))
 
 end
