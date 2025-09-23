@@ -186,7 +186,7 @@ function evaluate_adiabatic_derivative(cache::Abstract_QuantumModel_Cache, r::Ab
     adiabatic_derivative = zero(cache.adiabatic_derivative)
     
     for I in eachindex(diabatic_derivative)
-        adiabatic_derivative[I] .= U' * diabatic_derivative[I] * U
+        adiabatic_derivative[I] .= U.vectors' * diabatic_derivative[I] * U.vectors
     end
     return adiabatic_derivative
 end
@@ -236,7 +236,7 @@ end
 function evaluate_nonadiabatic_coupling(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     eigen = evaluate_eigen(cache, r)
     adiabatic_derivative = evaluate_adiabatic_derivative(cache, r)
-    nonadiabatic_coupling = zero(nonadiabatic_coupling)
+    nonadiabatic_coupling = zero(cache.nonadiabatic_coupling)
 
     evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
 

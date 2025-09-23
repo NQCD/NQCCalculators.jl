@@ -213,10 +213,23 @@ function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::Ab
 
     update_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
 
+    nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
+    
+    return nothing
+end
+
+function nonadiabatic_coupling_loop!(cache, adiabatic_derivative, model)
     @inbounds for I in NQCModels.dofs(cache)
         @. cache.nonadiabatic_coupling[I] = adiabatic_derivative[I] * cache.tmp_mat
     end
-    return nothing
+end
+
+function nonadiabatic_coupling_loop!(cache, adiabatic_derivative, model::NQCModels.SpinBoson)
+    @inbounds for N in eachindex(model.cⱼ)
+        @inbounds for I in NQCModels.dofs(cache)
+            @. cache.nonadiabatic_coupling[N] = adiabatic_derivative[N] * cache.tmp_mat
+        end
+    end
 end
 
 function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
@@ -419,11 +432,15 @@ function update_cache!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::Abstr
 end
 
 function update_cache!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    # println("before:")
+    # println(cache)
     update_potential!(cache, r)
     update_derivative!(cache, r)
     update_eigen!(cache, r)
     update_adiabatic_derivative!(cache, r)
     update_nonadiabatic_coupling!(cache, r)
+    # println("after:")
+    # println(cache)
     return nothing
 end
 
