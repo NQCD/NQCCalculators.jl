@@ -17,11 +17,11 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 NQCBase = "0.5, 1"
 NQCModels = "0.10, 1"
 QuadGK = "2.11.2"
-Random = "1.11.0"
 RingPolymerArrays = "1"
 StaticArrays = "1.9.13"
-StatsBase = "0.34.5"
+StatsBase = "0.34"
 julia = "1"
+Random = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
