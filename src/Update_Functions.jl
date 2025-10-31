@@ -125,12 +125,22 @@ end
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
 
     cache.tmp_mat .= cache.potential.data    # copy potential into eigenvector storage
-    vals, _ = LAPACK.syev!('V', 'U', cache.tmp_mat)
-    cache.eigen.values .= vals
-    correct_phase!(cache.tmp_mat, cache.eigen.vectors)
-    cache.eigen.vectors .= cache.tmp_mat
+    LAPACK.syevr!(cache.tmp_eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-8)
+    correct_phase!(cache.tmp_eigen.Z, cache.eigen.Z)
+    cache.eigen.w .= cache.tmp_eigen.w
+    cache.eigen.Z .= cache.tmp_eigen.Z
     return nothing
 end
+
+#= function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+
+    cache.tmp_mat .= cache.potential.data    # copy potential into eigenvector storage
+    vals, _ = LAPACK.syev!('V', 'U', cache.tmp_mat)
+    correct_phase!(cache.tmp_mat, cache.eigen.vectors)
+    cache.eigen.values .= vals
+    cache.eigen.vectors .= cache.tmp_mat
+    return nothing
+end =#
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = get_potential(cache, r)
@@ -154,8 +164,22 @@ end
     return nothing
 end =#
 
-function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+#= function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     U = get_eigen(cache, r).vectors
+    diabatic_derivative = get_derivative(cache, r)
+
+    for I in eachindex(diabatic_derivative)
+        # Step 1: tmp = U' * diabatic_derivative[I]
+        mul!(cache.tmp_mat, U', diabatic_derivative[I]) 
+
+        # Step 2: cache.adiabatic_derivative[I] = tmp * U
+        mul!(cache.adiabatic_derivative[I], cache.tmp_mat, U)
+    end
+    return nothing
+end =#
+
+function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    U = get_eigen(cache, r).Z
     diabatic_derivative = get_derivative(cache, r)
 
     for I in eachindex(diabatic_derivative)
@@ -211,12 +235,23 @@ function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::Ab
     eigen = get_eigen(cache, r)
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
 
-    update_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
+    update_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
 
     nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
     
     return nothing
 end
+
+#= function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    eigen = get_eigen(cache, r)
+    adiabatic_derivative = get_adiabatic_derivative(cache, r)
+
+    update_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
+
+    nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
+    
+    return nothing
+end =#
 
 function nonadiabatic_coupling_loop!(cache, adiabatic_derivative, model)
     @inbounds for I in NQCModels.dofs(cache)
@@ -432,15 +467,11 @@ function update_cache!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::Abstr
 end
 
 function update_cache!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    # println("before:")
-    # println(cache)
     update_potential!(cache, r)
     update_derivative!(cache, r)
     update_eigen!(cache, r)
     update_adiabatic_derivative!(cache, r)
     update_nonadiabatic_coupling!(cache, r)
-    # println("after:")
-    # println(cache)
     return nothing
 end
 
