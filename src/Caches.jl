@@ -238,9 +238,7 @@ struct QuantumModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T, M}
     model::M
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
-    eigen::HermitianEigenWs{T, Matrix{T}, T}
-    #eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
-    tmp_eigen::HermitianEigenWs{T, Matrix{T}, T}
+    eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     tmp_mat::Matrix{T}
@@ -260,19 +258,18 @@ function QuantumModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
 
     potential = Hermitian(zero(mat))
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
-    eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
-    #eigen = Eigen(zero(vec), zero(mat) + I)
-    tmp_eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
+    eigen = Eigen(zero(vec), zero(mat) + I)
     adiabatic_derivative = [zero(mat) for _ in CartesianIndices(derivative)]
     nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
     tmp_mat = zero(mat)
+
+    position = zeros(ndofs(model), atoms)
 
     return QuantumModel_Cache{T,M}(
         model,
         potential,
         derivative,
         eigen,
-        tmp_eigen,
         adiabatic_derivative,
         nonadiabatic_coupling,
         tmp_mat
