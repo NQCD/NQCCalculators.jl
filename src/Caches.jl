@@ -238,8 +238,7 @@ struct QuantumModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T, M}
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigen::HermitianEigenWs{T, Matrix{T}, T}
-    #eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
-    tmp_eigen::HermitianEigenWs{T, Matrix{T}, T}
+    phase_ref::AbstractVector{T}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     tmp_mat::Matrix{T}
@@ -260,8 +259,7 @@ function QuantumModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
     potential = Hermitian(zero(mat))
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
-    #eigen = Eigen(zero(vec), zero(mat) + I)
-    tmp_eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
+    phase_ref = rand(T, n) .+ eps(T)
     adiabatic_derivative = [zero(mat) for _ in CartesianIndices(derivative)]
     nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
     tmp_mat = zero(mat)
@@ -271,7 +269,7 @@ function QuantumModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
         potential,
         derivative,
         eigen,
-        tmp_eigen,
+        phase_ref,
         adiabatic_derivative,
         nonadiabatic_coupling,
         tmp_mat
@@ -310,6 +308,7 @@ struct RingPolymer_QuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T,M}
     potential::Vector{Hermitian{T,Matrix{T}}}
     derivative::Array{Hermitian{T,Matrix{T}},3}
     eigen::Vector{HermitianEigenWs{T, Matrix{T}, T}}
+    phase_ref::Vector{AbstractVector{T}}
     adiabatic_derivative::Array{Matrix{T},3}
     nonadiabatic_coupling::Array{Matrix{T},3}
     tmp_mat::Matrix{T}
@@ -323,7 +322,8 @@ struct RingPolymer_QuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T,M}
     centroid::Matrix{T}
     centroid_potential::Hermitian{T,Matrix{T}}
     centroid_derivative::Matrix{Hermitian{T,Matrix{T}}}
-    centroid_eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
+    centroid_eigen::HermitianEigenWs{T, Matrix{T}, T}
+    centroid_phase_ref::AbstractVector{T}
     centroid_adiabatic_derivative::Matrix{Matrix{T}}
     centroid_nonadiabatic_coupling::Matrix{Matrix{T}}
 end
@@ -343,6 +343,7 @@ function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     eigen = [HermitianEigenWs(zero(mat)+I, vecs=true) for _=1:beads]
+    phase_ref = [rand(T, n) .+ eps(T) for _=1:beads]
     nonadiabatic_coupling = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     tmp_mat = zero(mat)
 
@@ -356,6 +357,7 @@ function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer
     centroid_potential = Hermitian(zero(mat))
     centroid_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     centroid_eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
+    centroid_phase_ref = rand(T, n) .+ eps(T)
     centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
     centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
 
@@ -366,6 +368,7 @@ function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer
         potential,
         derivative,
         eigen,
+        phase_ref,
         adiabatic_derivative,
         nonadiabatic_coupling,
         tmp_mat,
@@ -380,6 +383,7 @@ function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer
         centroid_potential,
         centroid_derivative,
         centroid_eigen,
+        centroid_phase_ref,
         centroid_adiabatic_derivative,
         centroid_nonadiabatic_coupling
     )
@@ -405,6 +409,7 @@ struct QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T,M}
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigen::HermitianEigenWs{T, Matrix{T}, T}
+    phase_ref::AbstractVector{T}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     friction::Matrix{T}
@@ -425,6 +430,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type; friction_
     potential = Hermitian(zero(mat))
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
+    phase_ref = rand(T, n) .+ eps(T)
     adiabatic_derivative = [zero(mat) for _ in CartesianIndices(derivative)]
     nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
     friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
@@ -440,6 +446,7 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, T::Type; friction_
         potential,
         derivative,
         eigen,
+        phase_ref,
         adiabatic_derivative,
         nonadiabatic_coupling,
         friction,
@@ -481,6 +488,7 @@ struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cach
     potential::Vector{Hermitian{T,Matrix{T}}}
     derivative::Array{Hermitian{T,Matrix{T}},3}
     eigen::Vector{HermitianEigenWs{T, Matrix{T}, T}}
+    phase_ref::Vector{AbstractVector{T}}
     adiabatic_derivative::Array{Matrix{T},3}
     nonadiabatic_coupling::Array{Matrix{T},3}
     friction::Array{Matrix{T},3}
@@ -496,6 +504,7 @@ struct RingPolymer_QuantumFrictionModel_Cache{T,M} <: Abstract_QuantumModel_Cach
     centroid_potential::Hermitian{T,Matrix{T}}
     centroid_derivative::Matrix{Hermitian{T,Matrix{T}}}
     centroid_eigen::HermitianEigenWs{T, Matrix{T}, T}
+    centroid_phase_ref::AbstractVector{T}
     centroid_adiabatic_derivative::Matrix{Matrix{T}}
     centroid_nonadiabatic_coupling::Matrix{Matrix{T}}
     centroid_friction::Matrix{T}
@@ -515,7 +524,8 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
     potential = [Hermitian(zero(mat)) for _=1:beads]
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    eigen = [HermitianEigenWs(zero(mat) + I, vecs=true) for _=1:beads]
+    eigen = [HermitianEigenWs(zero(mat)+I, vecs=true) for _=1:beads]
+    phase_ref = [rand(T, n) .+ eps(T) for _=1:beads]
     nonadiabatic_coupling = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     friction = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     tmp_mat = zero(mat)
@@ -529,7 +539,8 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
     centroid = zeros(T, ndofs(model), atoms)
     centroid_potential = Hermitian(zero(mat))
     centroid_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
-    centroid_eigen = HermitianEigenWs(zero(mat) + I, vecs=true)
+    centroid_eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
+    centroid_phase_ref = rand(T, n) .+ eps(T)
     centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
     centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
     centroid_friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
@@ -544,6 +555,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
         potential,
         derivative,
         eigen,
+        phase_ref,
         adiabatic_derivative,
         nonadiabatic_coupling,
         friction,
@@ -559,6 +571,7 @@ function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads:
         centroid_potential,
         centroid_derivative,
         centroid_eigen,
+        centroid_phase_ref,
         centroid_adiabatic_derivative,
         centroid_nonadiabatic_coupling,
         centroid_friction
@@ -617,6 +630,3 @@ end
 function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, t::Type{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
     RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, t; friction_method=friction_method)
 end
-
-
-

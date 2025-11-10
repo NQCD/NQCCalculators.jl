@@ -124,11 +124,11 @@ end
 
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
 
-    cache.tmp_mat .= cache.potential.data    # copy potential into eigenvector storage
-    LAPACK.syevr!(cache.tmp_eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-15)
-    correct_phase!(cache.tmp_eigen.Z, cache.eigen.Z)
-    cache.eigen.w .= cache.tmp_eigen.w
-    cache.eigen.Z .= cache.tmp_eigen.Z
+    # Ensure symmetry explicitly
+    cache.tmp_mat .= cache.potential
+
+    FastLapackInterface.syevr!(cache.eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
+    correct_phase!(cache, cache.eigen)
     return nothing
 end
 
@@ -137,10 +137,8 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 
     @inbounds for i in beads(cache)
         cache.tmp_mat .= potential[i]
-        LAPACK.syevr!(cache.tmp_eigen[i], 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-15)
-        correct_phase!(cache.tmp_eigen[i].Z, cache.eigen[i].Z)
-        cache.eigen[i].w .= cache.tmp_eigen[i].w
-        cache.eigen[i].Z .= cache.tmp_eigen[i].Z
+        FastLapackInterface.syevr!(cache.eigen[i], 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
+        correct_phase!(cache.phase_ref[i], cache.eigen[i])
     end
     return nothing
 end
@@ -284,10 +282,9 @@ end
 
 function update_centroid_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = get_centroid_potential(cache, r)
-    eig = LinearAlgebra.eigen(potential)
-    correct_phase!(eig, cache.centroid_eigen.Z)
-    cache.centroid_eigen.w .= eig.w
-    cache.centroid_eigen.Z .= eig.Z
+    cache.tmp_mat .= potential
+    FastLapackInterface.syevr!(cache.centroid_eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
+    correct_phase!(cache.centroid_phase_ref, cache.centroid_eigen)
     return nothing
 end
 

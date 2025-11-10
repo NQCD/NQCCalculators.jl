@@ -145,37 +145,50 @@ function evaluate_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::Abst
     end
 end
 
-function correct_phase!(eig::HermitianEigenWs, old_eigenvectors::AbstractMatrix)
+function correct_phase!(cache, eig::FastLapackInterface.HermitianEigenWs)
     @views for i in 1:length(eig.w)
-        eig.Z[:,i] .*= sign(LinearAlgebra.dot(eig.Z[:,i], old_eigenvectors[:,i]))
+        eig.Z[:,i] .*= 2*(0.5 - signbit(cache.phase_ref' * eig.Z[:,i]))
     end
     return nothing
 end
 
-function correct_phase!(eig::AbstractMatrix, old_eigenvectors::AbstractMatrix)
-    @views for i in 1:size(eig,2)
-        eig[:,i] .*= sign(LinearAlgebra.dot(eig[:,i], old_eigenvectors[:,i]))
+function correct_phase!(cache, eig::AbstractMatrix)
+    @views for i in 1:size(eig, 2)
+        eig[:,i] .*= 2*(0.5 - signbit(cache.phase_ref' * eig[:,i]))
+    end
+    return nothing
+end
+
+function correct_phase!(phase_ref::AbstractVector, eig::AbstractMatrix)
+    @views for i in 1:size(eig, 2)
+        eig[:,i] .*= 2*(0.5 - signbit(phase_ref' * eig[:,i]))
+    end
+    return nothing
+end
+
+function correct_phase!(phase_ref::AbstractVector, eig::FastLapackInterface.HermitianEigenWs)
+    @views for i in 1:length(eig.w)
+        eig.Z[:,i] .*= 2*(0.5 - signbit(phase_ref' * eig.Z[:,i]))
     end
     return nothing
 end
 
 function evaluate_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = evaluate_potential(cache, r)
-
-    eig = LinearAlgebra.eigen(potential)
-    correct_phase!(eig, cache.eigen.Z)
+    eig = HermitianEigenWs(zero(cache.eigen.Z) + I)
+    FastLapackInterface.syevr!(eig, 'V', 'A', 'U', potential , 0.0, 0.0, 0, 0, 1e-12)
+    correct_phase!(cache, eig)
     return eig
 end
 
 function evaluate_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    RP_eigen = [HermitianEigenWs(zero(cache.eigen[1].Z) + I, vecs=true) for _=1:length(beads(cache))]
     potential = evaluate_potential(cache, r)
-    RP_eigen = [HermitianEigenWs(zero(cache.eigen[1].Z) + I) for _=1:length(beads(cache))]
-
+    tmp = zeros(size(potential[1]))
     @inbounds for i in beads(cache)
-        eig = LinearAlgebra.eigen(potential[i])
-        correct_phase!(eig, cache.eigen[i].Z)
-        RP_eigen[i].w .= eig.w
-        RP_eigen[i].Z .= eig.Z
+        tmp .= potential[i]
+        FastLapackInterface.syevr!(RP_eigen[i], 'V', 'A', 'U', tmp , 0.0, 0.0, 0, 0, 1e-12)
+        correct_phase!(cache.phase_ref[i], RP_eigen[i])
     end
     return RP_eigen
 end
@@ -309,9 +322,11 @@ end
 
 function evaluate_centroid_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = evaluate_centroid_potential(cache, r)
-
-    eig = LinearAlgebra.eigen(potential)
-    correct_phase!(eig, cache.centroid_eigen.Z)
+    tmp = zeros(size(potential))
+    tmp .= potential
+    eig = HermitianEigenWs(zero(cache.centroid_eigen.Z) + I)
+    FastLapackInterface.syevr!(eig, 'V', 'A', 'U', tmp, 0.0, 0.0, 0, 0, 1e-12)
+    correct_phase!(cache.centroid_phase_ref, eig)
     return eig
 end
 
