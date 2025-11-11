@@ -144,7 +144,7 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 end
 
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    U = get_eigen(cache, r).vectors
+    U = get_eigen(cache, r).Z
     diabatic_derivative = get_derivative(cache, r)
 
     for I in eachindex(diabatic_derivative)
