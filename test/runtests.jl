@@ -93,9 +93,9 @@ end
 
         # Check that the position for potential is the only one that has been updated.
         @test NQCCalculators.get_derivative(cache, r)[1] !== NQCModels.derivative(model, r)
-        @test NQCCalculators.get_eigen(cache, r).values !== eigvals(NQCModels.potential(model, r))
-        @test abs.(NQCCalculators.get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
-        @test NQCCalculators.get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r)[1] * cache.eigen.vectors
+        @test NQCCalculators.get_eigen(cache, r).w !== eigvals(NQCModels.potential(model, r))
+        @test abs.(NQCCalculators.get_eigen(cache, r).Z) !== abs.(eigvecs(NQCModels.potential(model, r)))
+        @test NQCCalculators.get_adiabatic_derivative(cache, r)[1] !== cache.eigen.Z' * NQCModels.derivative(model, r)[1] * cache.eigen.Z
     end
 
     @testset "Dependent evaluation" begin
@@ -105,9 +105,9 @@ end
         #Check that get_:quantities retrieves the wrong values
         @test NQCCalculators.get_potential(cache, r) !== NQCModels.potential(model, r)
         @test NQCCalculators.get_derivative(cache, r)[1] !== NQCModels.derivative(model, r)
-        @test NQCCalculators.get_eigen(cache, r).values !== eigvals(NQCModels.potential(model, r))
-        @test abs.(NQCCalculators.get_eigen(cache, r).vectors) !== abs.(eigvecs(NQCModels.potential(model, r)))
-        @test NQCCalculators.get_adiabatic_derivative(cache, r)[1] !== cache.eigen.vectors' * NQCModels.derivative(model, r)[1] * cache.eigen.vectors
+        @test NQCCalculators.get_eigen(cache, r).w !== eigvals(NQCModels.potential(model, r))
+        @test abs.(NQCCalculators.get_eigen(cache, r).Z) !== abs.(eigvecs(NQCModels.potential(model, r)))
+        @test NQCCalculators.get_adiabatic_derivative(cache, r)[1] !== cache.eigen.Z' * NQCModels.derivative(model, r)[1] * cache.eigen.Z
 
 		@debug "Cache info" cache
         #Update entries in the Cache to the new values
@@ -117,11 +117,11 @@ end
         # Check all the results
         @test cache.potential ≈ NQCModels.potential(model, r)
         @test cache.derivative[1] ≈ NQCModels.derivative(model, r)[1]
-        @test cache.eigen.values ≈ eigvals(NQCModels.potential(model, r))
-        @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
+        @test cache.eigen.w ≈ eigvals(NQCModels.potential(model, r))
+        @test abs.(cache.eigen.Z) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen.vectors' * NQCModels.derivative(model, r)[1] * cache.eigen.vectors
+            cache.eigen.Z' * NQCModels.derivative(model, r)[1] * cache.eigen.Z
         )
     end
      
@@ -142,11 +142,11 @@ end
 
         @test cache.potential ≈ NQCModels.potential(model, r)
         @test cache.derivative ≈ NQCModels.derivative(model, r)
-        @test cache.eigen.values ≈ eigvals(NQCModels.potential(model, r))
-        @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
+        @test cache.eigen.w ≈ eigvals(NQCModels.potential(model, r))
+        @test abs.(cache.eigen.Z) ≈ abs.(eigvecs(NQCModels.potential(model, r)))
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen.vectors' * NQCModels.derivative(model, r)[1] * cache.eigen.vectors
+            cache.eigen.Z' * NQCModels.derivative(model, r)[1] * cache.eigen.Z
         )
     end
 end
@@ -179,9 +179,9 @@ end
         # Check that the potential is the only one that has been updated.
         for i in NQCCalculators.beads(cache) 
             @test NQCCalculators.get_derivative(cache, r)[i] !== NQCModels.derivative(model, r[:,:,i])[1]
-            @test NQCCalculators.get_eigen(cache, r)[i].values !== eigvals(NQCModels.potential(model, r[:,:,i]))
-            @test abs.(NQCCalculators.get_eigen(cache, r)[i].vectors) !== abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
-            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] !== cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].vectors
+            @test NQCCalculators.get_eigen(cache, r)[i].w !== eigvals(NQCModels.potential(model, r[:,:,i]))
+            @test abs.(NQCCalculators.get_eigen(cache, r)[i].Z) !== abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
+            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] !== cache.eigen[i].Z' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].Z
         end
 		@debug "Cache info" cache
         NQCCalculators.update_cache!(cache, r)
@@ -189,9 +189,9 @@ end
         # Check that everything has been updated
         for i in NQCCalculators.beads(cache) 
             @test NQCCalculators.get_derivative(cache, r)[i] == NQCModels.derivative(model, r[:,:,i])[1]
-            @test NQCCalculators.get_eigen(cache, r)[i].values == eigvals(NQCModels.potential(model, r[:,:,i]))
-            @test abs.(NQCCalculators.get_eigen(cache, r)[i].vectors) == abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
-            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] == cache.eigen[i].vectors' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].vectors
+            @test NQCCalculators.get_eigen(cache, r)[i].w == eigvals(NQCModels.potential(model, r[:,:,i]))
+            @test abs.(NQCCalculators.get_eigen(cache, r)[i].Z) == abs.(eigvecs(NQCModels.potential(model, r[:,:,i])))
+            @test NQCCalculators.get_adiabatic_derivative(cache, r)[i] == cache.eigen[i].Z' * NQCModels.derivative(model, r[:,:,i])[1] * cache.eigen[i].Z
         end
     end
 
@@ -203,11 +203,11 @@ end
         # Check all the results
         @test cache.potential ≈ [NQCModels.potential(model, r[:,:,i]) for i=1:10]
         @test cache.derivative ≈ [NQCModels.derivative(model, hcat(r[k,j,i]))[1] for k=1:1, j=1:1, i=1:10]
-        @test [cache.eigen[i].values for i=1:10] ≈ eigvals.(cache.potential)
-        @test [abs.(cache.eigen[i].vectors) for i=1:10] ≈ [abs.(eigvecs(cache.potential[i])) for i=1:10]
+        @test [cache.eigen[i].w for i=1:10] ≈ eigvals.(cache.potential)
+        @test [abs.(cache.eigen[i].Z) for i=1:10] ≈ [abs.(eigvecs(cache.potential[i])) for i=1:10]
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen[1].vectors' * NQCModels.derivative(model, r[:,:,1])[1] * cache.eigen[1].vectors
+            cache.eigen[1].Z' * NQCModels.derivative(model, r[:,:,1])[1] * cache.eigen[1].Z
         )
     end
 
@@ -221,11 +221,11 @@ end
         # Check all the results
         @test cache.centroid_potential ≈ NQCModels.potential(model, r_centroid)
         @test cache.centroid_derivative[1] ≈ NQCModels.derivative(model, r_centroid)[1]
-        @test cache.centroid_eigen.values ≈ eigvals(NQCModels.potential(model, r_centroid))
-        @test abs.(cache.centroid_eigen.vectors) ≈ abs.(eigvecs(NQCModels.potential(model, r_centroid)))
+        @test cache.centroid_eigen.w ≈ eigvals(NQCModels.potential(model, r_centroid))
+        @test abs.(cache.centroid_eigen.Z) ≈ abs.(eigvecs(NQCModels.potential(model, r_centroid)))
         @test isapprox(
             cache.centroid_adiabatic_derivative[1],
-            cache.centroid_eigen.vectors' * NQCModels.derivative(model, r_centroid)[1] * cache.centroid_eigen.vectors
+            cache.centroid_eigen.Z' * NQCModels.derivative(model, r_centroid)[1] * cache.centroid_eigen.Z
         )
     end
 

@@ -18,6 +18,7 @@ using LinearAlgebra.LAPACK
 using RingPolymerArrays
 using NQCBase
 using QuadGK
+using FastLapackInterface
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel

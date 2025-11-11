@@ -4,6 +4,7 @@ authors = ["Ash Baldwin <Ash.Baldwin@warwick.ac.uk> and contributors"]
 version = "1.0.9"
 
 [deps]
+FastLapackInterface = "29a986be-02c6-4525-aec4-84b980013641"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
 NQCModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
@@ -14,14 +15,15 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+FastLapackInterface = "2.1.0"
 NQCBase = "0.5, 1"
 NQCModels = "0.10, 1"
 QuadGK = "2.11.2"
+Random = "1"
 RingPolymerArrays = "1"
 StaticArrays = "1.9.13"
 StatsBase = "0.34"
 julia = "1"
-Random = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
