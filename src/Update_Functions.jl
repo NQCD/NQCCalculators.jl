@@ -144,7 +144,7 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 end
 
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    U = get_eigen(cache, r).Z
+    U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
 
     for I in eachindex(diabatic_derivative)
@@ -212,7 +212,7 @@ end
     nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
     
     return nothing
-end =#
+end
 
 function nonadiabatic_coupling_loop!(cache, adiabatic_derivative, model)
     @inbounds for I in NQCModels.dofs(cache)
@@ -427,11 +427,15 @@ function update_cache!(cache::RingPolymer_ClassicalFrictionModel_Cache, r::Abstr
 end
 
 function update_cache!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    # println("before:")
+    # println(cache)
     update_potential!(cache, r)
     update_derivative!(cache, r)
     update_eigen!(cache, r)
     update_adiabatic_derivative!(cache, r)
     update_nonadiabatic_coupling!(cache, r)
+    # println("after:")
+    # println(cache)
     return nothing
 end
 

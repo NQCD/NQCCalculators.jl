@@ -264,6 +264,8 @@ function QuantumModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
     nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
     tmp_mat = zero(mat)
 
+    position = zeros(ndofs(model), atoms)
+
     return QuantumModel_Cache{T,M}(
         model,
         potential,
