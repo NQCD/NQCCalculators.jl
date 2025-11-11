@@ -203,17 +203,6 @@ function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::Ab
     return nothing
 end
 
-#= function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    eigen = get_eigen(cache, r)
-    adiabatic_derivative = get_adiabatic_derivative(cache, r)
-
-    update_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
-
-    nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
-    
-    return nothing
-end
-
 function nonadiabatic_coupling_loop!(cache, adiabatic_derivative, model)
     @inbounds for I in NQCModels.dofs(cache)
         @. cache.nonadiabatic_coupling[I] = adiabatic_derivative[I] * cache.tmp_mat
