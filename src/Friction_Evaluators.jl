@@ -65,8 +65,7 @@ function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potenti
 
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = -π * (∂hᵢ + (ϵ-h)*∂Γᵢ/Γ) * (∂hⱼ + (ϵ-h)*∂Γⱼ/Γ) * A(ϵ)^2 * ∂fermi(ϵ, μ, β)
-    diagonal = @view potential[diagind(potential)]
-    integral, _ = QuadGK.quadgk(kernel, extrema(diagonal)...)
+    integral, _ = QuadGK.quadgk(kernel, -Inf, Inf; rtol=1e-6)
     return integral
 end
 
