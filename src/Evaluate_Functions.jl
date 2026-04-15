@@ -176,7 +176,7 @@ end
 function evaluate_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = evaluate_potential(cache, r)
     eig = HermitianEigenWs(zero(cache.eigen.Z) + I)
-    FastLapackInterface.syevr!(eig, 'V', 'A', 'U', potential , 0.0, 0.0, 0, 0, 1e-12)
+    FastLapackInterface.syevr!(eig, 'V', 'A', 'U', Matrix(potential) , 0.0, 0.0, 0, 0, 1e-12)
     correct_phase!(cache, eig)
     return eig
 end
