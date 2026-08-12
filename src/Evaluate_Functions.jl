@@ -7,7 +7,7 @@ end
 function evaluate_potential(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = zero(cache.potential)
     @views @inbounds for i in beads(cache)
-        potential[i] .= NQCModels.potential(cache.model, r[:,:,i])
+        potential[:,:,i] .= NQCModels.potential(cache.model, r[:,:,i])
     end
     return potential
 end
@@ -76,7 +76,7 @@ function evaluate_friction(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix
         derivative = evaluate_derivative(cache, r)
 
         fill_friction_tensor!(friction, cache.friction_method, potential, derivative, r, μ)
-        
+
         return friction
     elseif cache.friction_method isa Nothing
         return friction
@@ -197,7 +197,7 @@ function evaluate_adiabatic_derivative(cache::Abstract_QuantumModel_Cache, r::Ab
     diabatic_derivative = evaluate_derivative(cache, r)
     U = evaluate_eigen(cache, r)
     adiabatic_derivative = zero(cache.adiabatic_derivative)
-    
+
     for I in eachindex(diabatic_derivative)
         adiabatic_derivative[I] .= U.Z' * diabatic_derivative[I] * U.Z
     end
