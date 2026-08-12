@@ -22,7 +22,7 @@ const MAX_EIGEN_ALLOCATIONS = 60000
 
     model = NQCModels.CompositeFrictionModel(Free(), RandomFriction(1))
     @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.ClassicalFrictionModel_Cache
-    @test NQCCalculators.Create_Cache(model, 1, 2, hcat(1.0)) isa NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, 2, ones(Float64, 1,1,1)) isa NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache
 end
 
 @testset "ClassicalModel_Cache" begin
@@ -273,7 +273,7 @@ end
 
     @testset "RingPolymer explict bath model" begin
         model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-        cache = NQCCalculators.RingPolymer_QuantumModel_Cache(model, 1, 10, Float64)
+        cache = NQCCalculators.RingPolymer_QuantumModel_Cache(model, 1, 10, hcat(1.0))
         r = rand(1, 1, 10)
 		@debug "Cache info" cache
         NQCCalculators.update_cache!(cache, r)
