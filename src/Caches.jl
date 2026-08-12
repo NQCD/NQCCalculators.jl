@@ -66,9 +66,9 @@ end
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice
 and the number of atoms in the simulation
 """
-function ClassicalModel_Cache(model::M, atoms::Integer, T::Type) where {M<:Model}
-    potential = hcat(zero(T))
-    derivative = zeros(T, ndofs(model), atoms)
+function ClassicalModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
+    potential = similar(matrix_prototype, 1, 1)
+    derivative = similar(matrix_prototype, ndofs(model), atoms)
 
     return ClassicalModel_Cache{T,M}(
         model,
@@ -107,13 +107,13 @@ end
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice,
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
-function RingPolymer_ClassicalModel_Cache(model::M, atoms::Integer, beads::Integer, T::Type) where {M<:Model}
-    potential = [hcat(zero(T)) for i in 1:beads]
-    derivative = zeros(T, ndofs(model), atoms, beads)
+function RingPolymer_ClassicalModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
+    potential = [similar(matrix_prototype, 1, 1) for i in 1:beads]
+    derivative = similar(matrix_prototype, ndofs(model), atoms, beads)
 
-    centroid = zeros(T, ndofs(model), atoms)
-    centroid_potential = hcat(zero(T))
-    centroid_derivative = zeros(T, ndofs(model), atoms)
+    centroid = similar(matrix_prototype, ndofs(model), atoms)
+    centroid_potential = similar(matrix_prototype, 1, 1)
+    centroid_derivative = similar(matrix_prototype, ndofs(model), atoms)
 
     return RingPolymer_ClassicalModel_Cache{T,M}(
         model,
@@ -181,7 +181,7 @@ Struct of type Abstract_ClassicalModel_Cache, used to store quantities (of data 
 """
 struct RingPolymer_ClassicalFrictionModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
     model::M
-    potential::AbstractVector{AbstractMatrix{T}}
+    potential::AbstractArray{T,3}
     derivative::AbstractArray{T,3}
     friction::AbstractArray{T,3}
 
@@ -310,7 +310,7 @@ struct RingPolymer_QuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T,M}
     potential::Vector{Hermitian{T,Matrix{T}}}
     derivative::Array{Hermitian{T,Matrix{T}},3}
     eigen::Vector{HermitianEigenWs{T, Matrix{T}, T}}
-    phase_ref::Vector{AbstractVector{T}}
+    phase_ref::AbstractVector
     adiabatic_derivative::Array{Matrix{T},3}
     nonadiabatic_coupling::Array{Matrix{T},3}
     tmp_mat::Matrix{T}
@@ -336,16 +336,16 @@ end
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice,
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
-function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray) where {M<:Model}
+function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
     n = nstates(model)
-    mat = NQCModels.QuantumModels.matrix_template(model, eltype(matrix_prototype))
-    vec = NQCModels.QuantumModels.vector_template(model, eltype(matrix_prototype))
+    mat = NQCModels.QuantumModels.matrix_template(model, T)
+    vec = NQCModels.QuantumModels.vector_template(model, T)
 
     potential = [Hermitian(zero(mat)) for _=1:beads]
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     eigen = [HermitianEigenWs(zero(mat)+I, vecs=true) for _=1:beads]
-    phase_ref = [rand(eltype(matrix_prototype), n) .+ eps(eltype(matrix_prototype)) for _=1:beads]
+    phase_ref = [rand(T, n) .+ eps(T) for _=1:beads]
     nonadiabatic_coupling = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
     tmp_mat = zero(mat)
 
@@ -355,11 +355,11 @@ function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer
     D̄ = zeros(ndofs(model), atoms, beads)
     traceless_adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
-    centroid = zeros(eltype(matrix_prototype), ndofs(model), atoms)
+    centroid = zeros(T, ndofs(model), atoms)
     centroid_potential = Hermitian(zero(mat))
     centroid_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     centroid_eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
-    centroid_phase_ref = rand(eltype(matrix_prototype), n) .+ eps(eltype(matrix_prototype))
+    centroid_phase_ref = rand(T, n) .+ eps(T)
     centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
     centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
 
@@ -582,53 +582,53 @@ end
 
 
 #Multiple dispatch definitions of the Create_Cache function with creates a Cache of the appropriate type dependent on what model type it is given
-function Create_Cache(model::ClassicalModel, atoms::Integer, matrix_prototype::AbstractArray{T}) where {T}  #functions of this type were called Calculator(model, atoms, t)
+function Create_Cache(model::ClassicalModel, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {T, N}  #functions of this type were called Calculator(model, atoms, t)
     ClassicalModel_Cache(model, atoms, matrix_prototype)
 end
 
-function Create_Cache(model::ClassicalModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::ClassicalModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {T, N}
     RingPolymer_ClassicalModel_Cache(model, atoms, beads, matrix_prototype)
 end
 
-function Create_Cache(model::ClassicalFrictionModel, atoms::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::ClassicalFrictionModel, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {T,N}
     ClassicalFrictionModel_Cache(model, atoms, matrix_prototype)
 end
 
-function Create_Cache(model::ClassicalFrictionModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::ClassicalFrictionModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {T,N}
     RingPolymer_ClassicalFrictionModel_Cache(model, atoms, beads, matrix_prototype)
 end
 
-function Create_Cache(model::CompositeModel, atoms::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::CompositeModel, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {T,N}
     if any([!isa(s.model, ClassicalModel) for s in NQCModels.get_pes_models(model.subsystems)])
         throw(ArgumentError("Currently, only CompositeModels using ClassicalModels to supply a PES are supported. "))
     end
     ClassicalFrictionModel_Cache(model, atoms, matrix_prototype)
 end
 
-function Create_Cache(model::CompositeModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::CompositeModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {T,N}
     if any([!isa(s.model, ClassicalModel) for s in NQCModels.get_pes_models(model.subsystems)])
         throw(ArgumentError("Currently, only CompositeModels using ClassicalModels to supply a PES are supported. "))
     end
     RingPolymer_ClassicalFrictionModel_Cache(model, atoms, beads, matrix_prototype)
 end
 
-function Create_Cache(model::QuantumModel, atoms::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::QuantumModel, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {T,N}
     QuantumModel_Cache(model, atoms, matrix_prototype)
 end
 
-function Create_Cache(model::QuantumModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T}) where {T}
+function Create_Cache(model::QuantumModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {T,N}
     RingPolymer_QuantumModel_Cache(model, atoms, beads, matrix_prototype)
 end
 
 # specific multiple dispatch for AndersonHolstein to work with DiabaticMDEF, friction_methods needs to not be a keyword argument
-function Create_Cache(model::QuantumModel, atoms::Integer, matrix_prototype::AbstractArray{T}, friction_method::Union{FrictionEvaluationMethod, Nothing}) where {T}
+function Create_Cache(model::QuantumModel, atoms::Integer, matrix_prototype::AbstractArray{T,N}, friction_method::Union{FrictionEvaluationMethod, Nothing}) where {T,N}
     QuantumFrictionModel_Cache(model, atoms, matrix_prototype; friction_method=friction_method)
 end
 
-function Create_Cache(model::QuantumFrictionModel, atoms::Integer, matrix_prototype::AbstractArray{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
+function Create_Cache(model::QuantumFrictionModel, atoms::Integer, matrix_prototype::AbstractArray{T,N}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T,N}
     QuantumFrictionModel_Cache(model, atoms, matrix_prototype; friction_method=friction_method)
 end
 
-function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T}
+function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T,N}
     RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, matrix_prototype; friction_method=friction_method)
 end
