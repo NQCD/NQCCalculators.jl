@@ -235,13 +235,13 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct QuantumModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T, M}
     model::M
-    potential::Hermitian{T,Matrix{T}}
-    derivative::Matrix{Hermitian{T,Matrix{T}}}
+    potential::AbstractMatrix
+    derivative::AbstractMatrix
     eigen::HermitianEigenWs{T, Matrix{T}, T}
     phase_ref::AbstractVector{T}
-    adiabatic_derivative::Matrix{Matrix{T}}
-    nonadiabatic_coupling::Matrix{Matrix{T}}
-    tmp_mat::Matrix{T}
+    adiabatic_derivative::AbstractMatrix
+    nonadiabatic_coupling::AbstractMatrix
+    tmp_mat::AbstractMatrix
 
 end
 
@@ -251,15 +251,15 @@ end
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice
 and the number of atoms in the simulation.
 """
-function QuantumModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray) where {M<:Model}
+function QuantumModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
     n = nstates(model)
-    mat = NQCModels.QuantumModels.matrix_template(model, eltype(matrix_prototype))
-    vec = NQCModels.QuantumModels.vector_template(model, eltype(matrix_prototype))
+    mat = NQCModels.QuantumModels.matrix_template(model, T)
+    vec = NQCModels.QuantumModels.vector_template(model, T)
 
     potential = Hermitian(zero(mat))
     derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
     eigen = HermitianEigenWs(zero(mat)+I, vecs=true)
-    phase_ref = rand(eltype(matrix_prototype), n) .+ eps(eltype(matrix_prototype))
+    phase_ref = rand(T, n) .+ eps(T)
     adiabatic_derivative = [zero(mat) for _ in CartesianIndices(derivative)]
     nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
     tmp_mat = zero(mat)
