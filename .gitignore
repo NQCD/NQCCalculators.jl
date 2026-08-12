@@ -4,3 +4,4 @@
 .nova
 .vscode/*
 .nova/*
+gpu-tests/metal/Manifest.toml
