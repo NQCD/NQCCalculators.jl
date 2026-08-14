@@ -26,13 +26,6 @@ Abstract supertype for all quantum models that can be solved with exact diagonal
 """
 abstract type Abstract_QuantumModel_Cache{T, M<:Union{QuantumModel, QuantumFrictionModel}} <: Abstract_Cache{T, M} end #type was called AbstractDiabaticCalculator
 
-"""
-   type: Abstract_CorrelatedQuantumModel_Cache{T, M<:{CorrelatedQuantumModel}} <: Abstract_Cache{T, M}
-
-Type for storing quantities obtained from models defined in terms of quantum Hamiltonians that parameterise a collection of
-interacting electrons and therefore cannot be solved with exact diagonalisation.
-"""
-abstract type Abstract_CorrelatedQuantumModel_Cache{T, M} <: Abstract_QuantumModel_Cache{T, M} end #type didn't formerly exist
 
 function Base.show(io::Core.IO, cache::Abstract_Cache)
 	printstyled(io, string(typeof(cache))*"\n"; bold=true)
