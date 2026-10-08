@@ -19,6 +19,18 @@ using RingPolymerArrays
 using NQCBase
 using QuadGK
 using FastLapackInterface
+import Random
+
+function similar_but_random(matrix_prototype::AbstractArray, dims...)::AbstractArray
+    out_array = similar(matrix_prototype, dims...)
+    Random.rand!(out_array)
+    return out_array
+end
+function similar_zero(matrix_prototype::AbstractArray, dims...)::AbstractArray
+    out_array = similar(matrix_prototype, dims...)
+    out_array .= zero(eltype(matrix_prototype))
+    return out_array
+end
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
@@ -40,6 +52,7 @@ export QuantumModel_Cache, RingPolymer_QuantumModel_Cache
 export QuantumFrictionModel_Cache, RingPolymer_QuantumFrictionModel_Cache
 export Create_Cache
 export needsupdate
+export get_cache
 
 include("Calculators.jl")
 export evaluate_friction, evaluate_derivative

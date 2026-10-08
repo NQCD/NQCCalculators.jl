@@ -21,34 +21,40 @@ This will ensure quantities are correctly evaluated and cached accordingly.
 The latter is called by the former and is where the details required to calculate the quantity are found.
 """
 const quantities = [
-    :potential,
-    :derivative,
-    :eigen,
-    :adiabatic_derivative,
-    :nonadiabatic_coupling,
+    (:potential, Union{AbstractArray, LinearAlgebra.Hermitian}),
+    (:derivative, Union{AbstractArray, AbstractArray{LinearAlgebra.Hermitian}}),
+    (:eigen, Union{FastLapackInterface.HermitianEigenWs, AbstractArray{FastLapackInterface.HermitianEigenWs}}),
+    (:adiabatic_derivative, AbstractArray),
+    (:nonadiabatic_coupling, AbstractArray),
 
-    :traceless_potential,
-    :V̄,
-    :traceless_derivative,
-    :D̄,
-    :traceless_adiabatic_derivative,
+    (:traceless_potential, AbstractArray{LinearAlgebra.Hermitian}),
+    (:V̄, AbstractArray),
+    (:traceless_derivative, AbstractArray{LinearAlgebra.Hermitian}),
+    (:D̄, AbstractArray),
+    (:traceless_adiabatic_derivative, AbstractArray),
 
-    :centroid,
-    :centroid_potential,
-    :centroid_derivative,
-    :centroid_eigen,
-    :centroid_adiabatic_derivative,
-    :centroid_nonadiabatic_coupling,
+    (:centroid, AbstractArray),
+    (:centroid_potential, AbstractArray),
+    (:centroid_derivative, AbstractArray),
+    (:centroid_eigen, AbstractArray),
+    (:centroid_adiabatic_derivative, AbstractArray),
+    (:centroid_nonadiabatic_coupling, AbstractArray),
 
-    :friction,
+    (:friction, AbstractArray),
+    (:centroid_friction, AbstractArray),
+
+    (:phase_ref, AbstractVector),
+    (:tmp_mat, AbstractMatrix),
+
 ]
 
-for quantity in quantities
+for (quantity,T) in quantities
     get_quantity = Symbol(:get_, quantity)
     field = Expr(:call, :getfield, :cache, QuoteNode(quantity))
+    
 
-    @eval function $(get_quantity)(cache, r)
-        return $field
+    @eval function $(get_quantity)(cache)
+        return $(field)::$(T)
     end
 end
 

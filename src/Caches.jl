@@ -9,6 +9,10 @@ obtained from the model.
 """
 abstract type Abstract_Cache{T, M<:Model} end #type was called AbstractCalculator
 
+function get_cache(x)
+    return x.cache::Abstract_Cache
+end
+
 """
     type: Abstract_ClassicalModel_Cache{T, M<:Union{ClassicalModel, CompositeModel}} <: Abstract_Cache{T, M}
 
@@ -228,13 +232,13 @@ Struct of type Abstract_QuantumModel_Cache, used to store quantities (of data ty
 """
 struct QuantumModel_Cache{T,M} <: Abstract_QuantumModel_Cache{T, M}
     model::M
-    potential::AbstractMatrix
-    derivative::AbstractMatrix
+    potential::Hermitian{T,Matrix{T}}
+    derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigen::HermitianEigenWs{T, Matrix{T}, T}
-    phase_ref::AbstractVector{T}
-    adiabatic_derivative::AbstractMatrix
-    nonadiabatic_coupling::AbstractMatrix
-    tmp_mat::AbstractMatrix
+    phase_ref::Vector{T}
+    adiabatic_derivative::Matrix{Matrix{T}}
+    nonadiabatic_coupling::Matrix{Matrix{T}}
+    tmp_mat::Matrix{T}
 
 end
 
@@ -270,6 +274,8 @@ function QuantumModel_Cache(model::M, atoms::Integer, matrix_prototype::Abstract
         tmp_mat
     )
 end
+
+get_model(cache::Abstract_QuantumModel_Cache) = cache.model::NQCModels.QuantumModels.QuantumModel
 
 
 """

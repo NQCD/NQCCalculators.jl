@@ -125,7 +125,7 @@ end
 function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
 
     # Ensure symmetry explicitly
-    cache.tmp_mat .= cache.potential
+    get_tmp_mat(cache) .= get_potential(cache)
 
     FastLapackInterface.syevr!(cache.eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
     correct_phase!(cache, cache.eigen)
@@ -144,11 +144,11 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 end
 
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    U = get_eigen(cache, r).Z
-    diabatic_derivative = get_derivative(cache, r)
+    U = get_eigen(cache).Z
+    diabatic_derivative = get_derivative(cache)
 
     for I in eachindex(diabatic_derivative)
-        cache.adiabatic_derivative[I] .= U' * diabatic_derivative[I] * U
+        get_adiabatic_derivative(cache)[I] .= U' * diabatic_derivative[I] * U
     end
     return nothing
 end
@@ -193,19 +193,19 @@ end
 - SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, section 2.3
 """
 function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    eigen = get_eigen(cache, r)
-    adiabatic_derivative = get_adiabatic_derivative(cache, r)
+    eigen = get_eigen(cache)
+    adiabatic_derivative = get_adiabatic_derivative(cache)
 
-    update_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
+    update_inverse_difference_matrix!(get_tmp_mat(cache), eigen.w)
 
-    nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
+    nonadiabatic_coupling_loop!(cache, adiabatic_derivative, get_model(cache))
     
     return nothing
 end
 
 function nonadiabatic_coupling_loop!(cache, adiabatic_derivative, model)
     @inbounds for I in NQCModels.dofs(cache)
-        @. cache.nonadiabatic_coupling[I] = adiabatic_derivative[I] * cache.tmp_mat
+        @. get_nonadiabatic_coupling(cache)[I] = adiabatic_derivative[I] * get_tmp_mat(cache)
     end
 end
 

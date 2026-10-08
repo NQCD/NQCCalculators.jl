@@ -147,7 +147,7 @@ end
 
 function correct_phase!(cache, eig::FastLapackInterface.HermitianEigenWs)
     @views for i in 1:length(eig.w)
-        eig.Z[:,i] .*= 2*(0.5 - signbit(cache.phase_ref' * eig.Z[:,i]))
+        eig.Z[:,i] .*= 2*(0.5 - signbit(get_phase_ref(cache)' * eig.Z[:,i]))
     end
     return nothing
 end
