@@ -1,7 +1,7 @@
 #Definitions of update functions
 
 function update_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
-    cache.potential .= hcat(NQCModels.potential(cache.model, r))
+    cache.potential .= NQCModels.potential(cache.model, r)
 end
 
 function update_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
@@ -127,7 +127,7 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     # Ensure symmetry explicitly
     cache.tmp_mat .= cache.potential
 
-    FastLapackInterface.syevr!(cache.eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
+    cache.eigen = eigen(Hermitian(cache.tmp_mat))
     correct_phase!(cache, cache.eigen)
     return nothing
 end
@@ -137,14 +137,14 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 
     @inbounds for i in beads(cache)
         cache.tmp_mat .= potential[i]
-        FastLapackInterface.syevr!(cache.eigen[i], 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
+        cache.eigen[i] = eigen(Hermitian(cache.tmp_mat))
         correct_phase!(cache.phase_ref[i], cache.eigen[i])
     end
     return nothing
 end
 
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    U = get_eigen(cache, r).Z
+    U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
 
     for I in eachindex(diabatic_derivative)
@@ -160,7 +160,7 @@ function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::Abs
     for i in axes(derivative, 3) # Beads
         for j in axes(derivative, 2) # Atoms
             for k in axes(derivative, 1) # DoFs
-                cache.adiabatic_derivative[k,j,i] .= eigen[i].Z' * derivative[k,j,i] * eigen[i].Z
+                cache.adiabatic_derivative[k,j,i] .= eigen[i].vectors' * derivative[k,j,i] * eigen[i].vectors
             end
         end
     end
@@ -171,7 +171,7 @@ function update_centroid_adiabatic_derivative!(cache::Abstract_QuantumModel_Cach
     centroid_derivative = get_centroid_derivative(cache, r)
     centroid_eigen = get_centroid_eigen(cache, r)
     for I in eachindex(centroid_derivative)
-        cache.centroid_adiabatic_derivative[I] .= centroid_eigen.Z' * centroid_derivative[I] * centroid_eigen.Z
+        cache.centroid_adiabatic_derivative[I] .= centroid_eigen.vectors' * centroid_derivative[I] * centroid_eigen.vectors
     end
     return nothing
 end
@@ -180,7 +180,7 @@ function update_inverse_difference_matrix!(out, eigenvalues)
     @inbounds for i in eachindex(eigenvalues)
         for j in eachindex(eigenvalues)
             # Checking if the eigenvalues are different, otherwise set them to 0. Blame Henry for this!
-            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j]) .* (eigenvalues[i] .!= eigenvalues[j]) 
+            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j]) .* (eigenvalues[i] .!= eigenvalues[j])
         end
     end
     return nothing
@@ -196,10 +196,10 @@ function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::Ab
     eigen = get_eigen(cache, r)
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
 
-    update_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
+    update_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
 
     nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
-    
+
     return nothing
 end
 
@@ -222,7 +222,7 @@ function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::Ab
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
 
     @inbounds for i in beads(cache)
-        update_inverse_difference_matrix!(cache.tmp_mat, eigen[i].w)
+        update_inverse_difference_matrix!(cache.tmp_mat, eigen[i].values)
         for j in mobileatoms(cache)
             for k in dofs(cache)
                 @. cache.nonadiabatic_coupling[k,j,i] = adiabatic_derivative[k,j,i] * cache.tmp_mat
@@ -235,7 +235,7 @@ end
 function update_centroid_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     adiabatic_derivative = get_centroid_adiabatic_derivative(cache, r)
     eigen = get_centroid_eigen(cache, r)
-    update_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
+    update_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
 
     @inbounds for j in mobileatoms(cache)
         for k in dofs(cache)
@@ -272,7 +272,7 @@ end
 function update_centroid_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = get_centroid_potential(cache, r)
     cache.tmp_mat .= potential
-    FastLapackInterface.syevr!(cache.centroid_eigen, 'V', 'A', 'U', cache.tmp_mat, 0.0, 0.0, 0, 0, 1e-12)
+    cache.centroid_eigen = eigen(Hermitian(cache.tmp_mat))
     correct_phase!(cache.centroid_phase_ref, cache.centroid_eigen)
     return nothing
 end
@@ -383,7 +383,7 @@ updates all model properties stored in the cache for the current position `r`.
 - Nonadiabatic coupling
 - Friction tensor
 
-- Centroid equivalents of the above 
+- Centroid equivalents of the above
 """
 function update_cache!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
     update_potential!(cache, r)
@@ -483,7 +483,7 @@ updates all model properties stored in the cache for the current centroid positi
 - Eigenvalues and eigenvectors
 - Adiabatic derivative
 - Nonadiabatic coupling
-- Friction tensor 
+- Friction tensor
 """
 function update_centroid!(cache::RingPolymer_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.centroid .= RingPolymerArrays.get_centroid(r)
