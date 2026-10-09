@@ -126,9 +126,10 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
 
     # Ensure symmetry explicitly
     cache.tmp_mat .= cache.potential
-
-    cache.eigen = eigen(Hermitian(cache.tmp_mat))
-    correct_phase!(cache, cache.eigen)
+    eig_result = eigen(Hermitian(cache.tmp_mat))
+    cache.eigen.values .= eig_result.values
+    cache.eigen.vectors .= eig_result.vectors
+    correct_phase!(cache, cache.eigen.vectors)
     return nothing
 end
 
@@ -137,12 +138,13 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 
     @inbounds for i in beads(cache)
         cache.tmp_mat .= potential[i]
-        cache.eigen[i] = eigen(Hermitian(cache.tmp_mat))
+        eig_result = eigen(Hermitian(cache.tmp_mat))
+        cache.eigen[i].values .= eig_result.values
+        cache.eigen[i].vectors .= eig_result.vectors
         correct_phase!(cache.phase_ref[i], cache.eigen[i])
     end
     return nothing
 end
-
 function update_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     U = get_eigen(cache, r).vectors
     diabatic_derivative = get_derivative(cache, r)
